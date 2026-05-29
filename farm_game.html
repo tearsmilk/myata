@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌾 Myata Farm</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0d0e11;
+  --bg2:     #141519;
+  --bg3:     #1a1c23;
+  --border:  rgba(255,255,255,0.07);
+  --accent:  #5865F2;
+  --green:   #57F287;
+  --gold:    #FEE75C;
+  --red:     #ED4245;
+  --text:    #e3e5e8;
+  --muted:   #6d7280;
+  --card:    rgba(255,255,255,0.04);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 14px 32px; background: rgba(13,14,17,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+.nav-logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; text-decoration: none; color: var(--text); }
+.nav-logo-dot { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), #eb459e); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.nav-coins { display: flex; align-items: center; gap: 16px; font-size: 14px; font-weight: 600; }
+.coin-badge { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; }
+
+/* LAYOUT */
+.game-wrap { display: grid; grid-template-columns: 280px 1fr 300px; gap: 16px; padding: 20px; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 60px); }
+
+/* PANELS */
+.panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.panel-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* FARM GRID */
+.farm-panel { display: flex; flex-direction: column; }
+.farm-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 16px; }
+.plot {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: #1a1208;
+  border: 2px solid #2a1e0e;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+  font-size: 22px;
+  user-select: none;
+}
+.plot:hover { border-color: var(--accent); transform: scale(1.05); z-index: 2; }
+.plot.selected { border-color: var(--gold) !important; box-shadow: 0 0 12px rgba(254,231,92,0.3); }
+.plot.empty { background: #1a1208; }
+.plot.growing { background: #1a2810; border-color: #2d4a18; }
+.plot.ready { background: #1a2a10; border-color: var(--green); animation: glow-green 1.5s ease-in-out infinite; }
+@keyframes glow-green { 0%,100%{box-shadow:0 0 6px rgba(87,242,135,0.2)} 50%{box-shadow:0 0 16px rgba(87,242,135,0.5)} }
+
+.plot-bar { position: absolute; bottom: 3px; left: 4px; right: 4px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
+.plot-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--green), #3ba55d); transition: width 0.5s; }
+
+.plot-num { position: absolute; top: 3px; left: 5px; font-size: 8px; color: var(--muted); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+/* PLOT INFO */
+.plot-info { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; min-height: 80px; }
+.plot-info-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.plot-info-sub { font-size: 13px; color: var(--muted); }
+.progress-bar { background: rgba(255,255,255,0.08); border-radius: 99px; height: 8px; overflow: hidden; margin: 8px 0 4px; }
+.progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--green), #3ba55d); transition: width 0.5s; }
+
+/* BUTTONS */
+.btn { padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: 'Outfit', sans-serif; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-green  { background: rgba(87,242,135,0.15); color: var(--green); border: 1px solid rgba(87,242,135,0.25); }
+.btn-green:hover:not(:disabled) { background: rgba(87,242,135,0.25); }
+.btn-blue   { background: rgba(88,101,242,0.15); color: #949cf7; border: 1px solid rgba(88,101,242,0.25); }
+.btn-blue:hover:not(:disabled) { background: rgba(88,101,242,0.25); }
+.btn-gold   { background: rgba(254,231,92,0.15); color: var(--gold); border: 1px solid rgba(254,231,92,0.25); }
+.btn-gold:hover:not(:disabled) { background: rgba(254,231,92,0.25); }
+.btn-red    { background: rgba(237,66,69,0.15); color: var(--red); border: 1px solid rgba(237,66,69,0.25); }
+.btn-red:hover:not(:disabled) { background: rgba(237,66,69,0.25); }
+.btn-full   { width: 100%; justify-content: center; }
+
+.farm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* LEFT PANEL — SHOP */
+.shop-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; margin-bottom: 6px; }
+.shop-item:hover { background: var(--card); border-color: var(--border); }
+.shop-item.selected-seed { background: rgba(88,101,242,0.12); border-color: rgba(88,101,242,0.3); }
+.shop-item-emoji { font-size: 20px; width: 28px; text-align: center; }
+.shop-item-info { flex: 1; }
+.shop-item-name { font-size: 14px; font-weight: 600; }
+.shop-item-price { font-size: 12px; color: var(--muted); }
+.shop-item-sell { font-size: 11px; color: var(--green); }
+.shop-item-qty { font-size: 12px; font-weight: 700; color: var(--gold); font-family: 'JetBrains Mono', monospace; }
+
+/* RIGHT PANEL */
+.inv-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 8px; background: var(--bg3); margin-bottom: 6px; }
+.inv-item-left { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; }
+.inv-item-qty { font-size: 13px; font-weight: 700; color: var(--gold); font-family: 'JetBrains Mono', monospace; }
+.inv-sell-btn { font-size: 11px; padding: 4px 10px; border-radius: 6px; background: rgba(87,242,135,0.12); color: var(--green); border: 1px solid rgba(87,242,135,0.2); cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 600; transition: all 0.15s; }
+.inv-sell-btn:hover { background: rgba(87,242,135,0.22); }
+
+/* EVENT BANNER */
+.event-banner { border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.event-positive { background: rgba(87,242,135,0.1); border: 1px solid rgba(87,242,135,0.2); color: var(--green); }
+.event-negative { background: rgba(237,66,69,0.1); border: 1px solid rgba(237,66,69,0.2); color: var(--red); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 500; z-index: 999; transform: translateY(20px); opacity: 0; transition: all 0.3s; pointer-events: none; max-width: 300px; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: rgba(87,242,135,0.4); color: var(--green); }
+.toast.error   { border-color: rgba(237,66,69,0.4); color: var(--red); }
+.toast.info    { border-color: rgba(88,101,242,0.4); color: #949cf7; }
+
+/* TABS */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 14px; }
+.tab { padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+.tab.active { background: rgba(88,101,242,0.15); color: #949cf7; }
+.tab-content { display: none; } .tab-content.active { display: block; }
+
+/* ACHIEVEMENTS */
+.ach-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; }
+.ach-item.unlocked { background: rgba(87,242,135,0.08); border: 1px solid rgba(87,242,135,0.15); }
+.ach-item.locked   { background: var(--bg3); border: 1px solid var(--border); opacity: 0.6; }
+.ach-icon { font-size: 18px; }
+.ach-info { flex: 1; }
+.ach-name { font-size: 13px; font-weight: 600; }
+.ach-desc { font-size: 11px; color: var(--muted); }
+
+/* STATS */
+.stat-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+.stat-row:last-child { border-bottom: none; }
+.stat-val { font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--gold); }
+
+@media (max-width: 1100px) { .game-wrap { grid-template-columns: 240px 1fr; } .game-wrap > div:last-child { display: none; } }
+@media (max-width: 700px)  { .game-wrap { grid-template-columns: 1fr; } .game-wrap > div:first-child { display: none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-dot">🌿</div>
+    Myata Farm
+  </a>
+  <div class="nav-coins">
+    <div class="coin-badge">🌱 <span id="coins-display">100</span></div>
+    <div class="coin-badge">⭐ <span id="points-display">0</span></div>
+  </div>
+</nav>
+
+<div class="game-wrap">
+
+  <!-- LEFT: SHOP -->
+  <div class="panel">
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('shop')">🛒 Магазин</div>
+      <div class="tab" onclick="switchTab('stats')">📊 Стата</div>
+    </div>
+
+    <div id="tab-shop" class="tab-content active">
+      <div id="shop-list"></div>
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="panel-title" style="margin-bottom:8px">💼 Подработка</div>
+        <button class="btn btn-gold btn-full" onclick="doWork()" id="work-btn">💼 Работать (+50–100🌱)</button>
+        <div id="work-cd" style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px"></div>
+      </div>
+    </div>
+
+    <div id="tab-stats" class="tab-content">
+      <div id="stats-list"></div>
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="panel-title" style="margin-bottom:8px">🏅 Достижения</div>
+        <div id="ach-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: FARM -->
+  <div class="panel farm-panel">
+    <div id="event-banner"></div>
+
+    <div class="panel-title">🌾 Ферма <span style="margin-left:auto;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">стр. <span id="page-label">1/5</span></span></div>
+
+    <div class="farm-grid" id="farm-grid"></div>
+
+    <div class="plot-info" id="plot-info">
+      <div class="plot-info-name" style="color:var(--muted)">Выберите грядку</div>
+      <div class="plot-info-sub">Нажмите на клетку чтобы увидеть информацию</div>
+    </div>
+
+    <div class="farm-actions">
+      <button class="btn btn-green" id="btn-plant" onclick="doPlant()">🌱 Посадить</button>
+      <button class="btn btn-gold"  id="btn-harvest" onclick="doHarvest()">✅ Собрать</button>
+      <button class="btn btn-blue"  onclick="changePage(-1)">◀ Назад</button>
+      <button class="btn btn-blue"  onclick="changePage(1)">Вперёд ▶</button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-gold btn-full" onclick="harvestAll()">✅ Собрать всё готовое</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: INVENTORY + EVENTS -->
+  <div class="panel">
+    <div class="panel-title">🎒 Инвентарь</div>
+    <div id="inv-list" style="max-height:280px;overflow-y:auto"></div>
+    <div style="margin-top:10px">
+      <button class="btn btn-red btn-full" onclick="sellAll()">📦 Продать всё</button>
+    </div>
+
+    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+      <div class="panel-title" style="margin-bottom:8px">⚡ События</div>
+      <div id="events-panel" style="font-size:13px;color:var(--muted)">Нет активных событий</div>
+    </div>
+
+    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+      <div class="panel-title" style="margin-bottom:8px">🔄 Конвертация</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">5 🌱 = 1 🪙</div>
+      <div style="display:flex;gap:8px">
+        <input id="convert-input" type="number" min="5" placeholder="Кол-во 🌱"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-family:Outfit,sans-serif;font-size:13px;outline:none">
+        <button class="btn btn-blue" onclick="doConvert()">Обменять</button>
+      </div>
+      <div id="convert-result" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// PLANTS DATA
+// ══════════════════════════════════════════════
+const PLANTS = [
+  {id:"wheat",      name:"Пшеница",   emoji:"🌾", buy:50,  sell:65,  time:14400,  pts:10},
+  {id:"carrot",     name:"Морковь",   emoji:"🥕", buy:70,  sell:91,  time:21600,  pts:15},
+  {id:"potato",     name:"Картофель", emoji:"🥔", buy:80,  sell:104, time:28800,  pts:18},
+  {id:"cabbage",    name:"Капуста",   emoji:"🥬", buy:90,  sell:117, time:36000,  pts:20},
+  {id:"horseradish",name:"Хрен",      emoji:"🌿", buy:100, sell:130, time:43200,  pts:22},
+  {id:"tea",        name:"Чай",       emoji:"🍵", buy:120, sell:156, time:50400,  pts:28},
+  {id:"grape",      name:"Виноград",  emoji:"🍇", buy:150, sell:195, time:64800,  pts:35},
+  {id:"bamboo",     name:"Бамбук",    emoji:"🎋", buy:200, sell:260, time:86400,  pts:45},
+  {id:"wisteria",   name:"Глициния",  emoji:"🌸", buy:300, sell:390, time:129600, pts:65},
+  {id:"cactus",     name:"Кактус",    emoji:"🌵", buy:400, sell:500, time:172800, pts:85},
+  {id:"coconut",    name:"Кокос",     emoji:"🥥", buy:550, sell:690, time:216000, pts:110},
+  {id:"tobacco",    name:"Табак",     emoji:"🚬", buy:750, sell:930, time:259200, pts:150},
+];
+
+const PLOT_COUNT = 25;
+const PLOTS_PER_PAGE = 5;
+
+const ACHIEVEMENTS = [
+  {id:"first_harvest",  name:"🌾 Первый урожай",  desc:"Собери первый урожай",           target:1,   stat:"total_harvests"},
+  {id:"harvests_50",    name:"🌾 Жнец I",          desc:"Собери 50 урожаев",              target:50,  stat:"total_harvests"},
+  {id:"harvests_500",   name:"🌾 Жнец II",         desc:"Собери 500 урожаев",             target:500, stat:"total_harvests"},
+  {id:"sold_1000",      name:"💰 Торговец I",      desc:"Продай на 1000 🌱",             target:1000,stat:"total_sold"},
+  {id:"sold_10000",     name:"💰 Торговец II",     desc:"Продай на 10000 🌱",            target:10000,stat:"total_sold"},
+  {id:"worker_10",      name:"⏰ Трудяга I",       desc:"Поработай 10 раз",               target:10,  stat:"total_worked"},
+  {id:"worker_50",      name:"⏰ Трудяга II",      desc:"Поработай 50 раз",               target:50,  stat:"total_worked"},
+  {id:"rich_5k",        name:"💎 Богач I",         desc:"Накопи 5000 🌱",                target:5000,stat:"coins"},
+  {id:"rich_50k",       name:"💎 Богач II",        desc:"Накопи 50000 🌱",               target:50000,stat:"coins"},
+  {id:"planted_100",    name:"🌱 Садовник I",      desc:"Посади 100 растений",            target:100, stat:"total_planted"},
+  {id:"planted_1000",   name:"🌱 Садовник II",     desc:"Посади 1000 растений",           target:1000,stat:"total_planted"},
+];
+
+const EVENTS = [
+  {id:"dew",     name:"🌿 Утренняя роса",       desc:"+20% к скорости роста",       positive:true,  mult:1.2,  duration:1800000},
+  {id:"export",  name:"🚢 Срочный экспорт",     desc:"+20% к цене продажи",         positive:true,  sell:1.2,  duration:2400000},
+  {id:"import",  name:"📦 Проблемы с импортом", desc:"+30% к цене семян",           positive:false, buy:1.3,   duration:3600000},
+  {id:"drought", name:"🌵 Засуха",              desc:"-20% к скорости роста",       positive:false, mult:0.8,  duration:2400000},
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let state = loadState();
+let selectedPlot  = null;
+let selectedSeed  = null;
+let currentPage   = 0;
+let activeEvent   = null;
+let eventTimer    = null;
+
+function defaultState() {
+  return {
+    coins:    100,
+    points:   0,
+    plots:    Array.from({length:PLOT_COUNT}, (_,i) => ({slot:i, status:"empty", plantId:null, plantedAt:null, stage:0})),
+    inventory:{},
+    stats:    {total_harvests:0, total_sold:0, total_planted:0, total_worked:0},
+    achievements:[],
+    lastWork: 0,
+    seeds:    {},
+    version:  1,
+  };
+}
+
+function loadState() {
+  try {
+    const s = localStorage.getItem("myata_farm");
+    if (s) return {...defaultState(), ...JSON.parse(s)};
+  } catch(e){}
+  return defaultState();
+}
+
+function saveState() {
+  try { localStorage.setItem("myata_farm", JSON.stringify(state)); } catch(e){}
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function getPlant(id) { return PLANTS.find(p => p.id === id); }
+
+function calcProgress(plot) {
+  if (plot.status !== "growing" || !plot.plantedAt) return 0;
+  const plant = getPlant(plot.plantId);
+  if (!plant) return 0;
+  let mult = 1.0;
+  if (activeEvent?.id === "dew")     mult = 1.2;
+  if (activeEvent?.id === "drought") mult = 0.8;
+  const elapsed = (Date.now() - plot.plantedAt) * mult;
+  return Math.min(1, elapsed / plant.time);
+}
+
+function isReady(plot) { return calcProgress(plot) >= 1; }
+
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60)  return `${s}с`;
+  if (s < 3600) return `${Math.floor(s/60)}м ${s%60}с`;
+  const h = Math.floor(s / 3600), m = Math.floor((s%3600)/60);
+  return `${h}ч ${m}м`;
+}
+
+function getSeedPrice(plant) {
+  let p = plant.buy;
+  if (activeEvent?.id === "import") p = Math.ceil(p * 1.3);
+  return p;
+}
+
+function getSellPrice(plant) {
+  let p = plant.sell;
+  if (activeEvent?.id === "export") p = Math.ceil(p * 1.2);
+  return p;
+}
+
+function addCoins(amount) {
+  state.coins = Math.max(0, state.coins + amount);
+  saveState();
+  updateHeader();
+}
+
+function addPoints(amount) {
+  state.points += amount;
+  saveState();
+  updateHeader();
+}
+
+function toast(msg, type="info") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.className = "toast", 2500);
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function updateHeader() {
+  document.getElementById("coins-display").textContent = state.coins.toLocaleString();
+  document.getElementById("points-display").textContent = state.points.toLocaleString();
+}
+
+function renderShop() {
+  const el = document.getElementById("shop-list");
+  el.innerHTML = PLANTS.map(p => {
+    const qty   = state.seeds?.[p.id] || 0;
+    const price = getSeedPrice(p);
+    const sell  = getSellPrice(p);
+    const sel   = selectedSeed === p.id ? " selected-seed" : "";
+    return `<div class="shop-item${sel}" onclick="selectSeed('${p.id}')">
+      <div class="shop-item-emoji">${p.emoji}</div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">${p.name}</div>
+        <div class="shop-item-price">🛒 ${price} 🌱 · ${formatTime(p.time)}</div>
+        <div class="shop-item-sell">📦 продажа ${sell} 🌱</div>
+      </div>
+      <div>
+        <div class="shop-item-qty">${qty > 0 ? `×${qty}` : ""}</div>
+        <button class="btn btn-blue" style="font-size:11px;padding:4px 8px;margin-top:4px" onclick="event.stopPropagation();buySeed('${p.id}')">Купить</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderFarm() {
+  const grid = document.getElementById("farm-grid");
+  const start = currentPage * PLOTS_PER_PAGE;
+  grid.innerHTML = "";
+
+  for (let i = start; i < start + PLOTS_PER_PAGE; i++) {
+    const plot = state.plots[i];
+    const pct  = calcProgress(plot);
+    const ready = pct >= 1;
+    const plant = plot.plantId ? getPlant(plot.plantId) : null;
+
+    let cls = "plot";
+    if (i === selectedPlot) cls += " selected";
+    if (plot.status === "growing") cls += ready ? " ready" : " growing";
+
+    const emoji = plot.status === "empty" ? "🟫" : (plant ? plant.emoji : "?");
+    const bar   = plot.status === "growing" ? `<div class="plot-bar"><div class="plot-bar-fill" style="width:${pct*100}%"></div></div>` : "";
+
+    grid.innerHTML += `<div class="${cls}" onclick="selectPlot(${i})" title="${plant?.name || 'Пусто'}">
+      <div class="plot-num">#${i+1}</div>
+      ${emoji}
+      ${bar}
+    </div>`;
+  }
+
+  document.getElementById("page-label").textContent = `${currentPage+1}/5`;
+  updatePlotInfo();
+}
+
+function updatePlotInfo() {
+  const el = document.getElementById("plot-info");
+  if (selectedPlot === null) {
+    el.innerHTML = `<div class="plot-info-name" style="color:var(--muted)">Выберите грядку</div><div class="plot-info-sub">Нажмите на клетку</div>`;
+    return;
+  }
+  const plot  = state.plots[selectedPlot];
+  const plant = plot.plantId ? getPlant(plot.plantId) : null;
+
+  if (plot.status === "empty") {
+    el.innerHTML = `<div class="plot-info-name">🟫 Грядка #${selectedPlot+1}</div>
+    <div class="plot-info-sub">${selectedSeed ? `Выбрано: ${getPlant(selectedSeed)?.name} — нажмите Посадить` : "Выберите семя в магазине и нажмите Посадить"}</div>`;
+  } else if (plant) {
+    const pct   = calcProgress(plot);
+    const ready = pct >= 1;
+    const plant_time = plant.time;
+    let mult = 1.0;
+    if (activeEvent?.id === "dew")     mult = 1.2;
+    if (activeEvent?.id === "drought") mult = 0.8;
+    const elapsed  = Date.now() - plot.plantedAt;
+    const remaining = Math.max(0, plant_time / mult - elapsed);
+    const stages = ["🌱 Семя","🌿 Росток","🌾 Молодой","🌻 Стебель","✅ Зрелый"];
+    const stageIdx = Math.min(4, Math.floor(pct * 4));
+    el.innerHTML = `
+      <div class="plot-info-name">${plant.emoji} ${plant.name} — Грядка #${selectedPlot+1}</div>
+      <div class="plot-info-sub">${ready ? "✅ Готово к сбору!" : `${stages[stageIdx]} · осталось ${formatTime(remaining)}`}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct*100}%"></div></div>
+      <div style="font-size:11px;color:var(--muted)">${Math.floor(pct*100)}% · Продажа: ${getSellPrice(plant)} 🌱</div>`;
+  }
+
+  document.getElementById("btn-plant").disabled   = plot.status !== "empty" || !selectedSeed;
+  document.getElementById("btn-harvest").disabled = plot.status !== "growing" || !isReady(plot);
+}
+
+function renderInventory() {
+  const el = document.getElementById("inv-list");
+  const inv = state.inventory || {};
+  const items = Object.entries(inv).filter(([,v]) => v > 0);
+  if (!items.length) { el.innerHTML = `<div style="color:var(--muted);font-size:13px">Инвентарь пуст</div>`; return; }
+
+  el.innerHTML = items.map(([id, qty]) => {
+    const plant = getPlant(id.replace("harvest_",""));
+    if (!plant) return "";
+    const price = getSellPrice(plant);
+    return `<div class="inv-item">
+      <div class="inv-item-left">${plant.emoji} ${plant.name} <span style="color:var(--muted);font-size:12px">×${qty}</span></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--green)">${price}🌱</span>
+        <button class="inv-sell-btn" onclick="sellOne('${id}')">Продать</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderEvents() {
+  const el = document.getElementById("events-panel");
+  if (!activeEvent) { el.innerHTML = `<div style="color:var(--muted)">Нет активных событий</div>`; return; }
+  const remaining = activeEvent.ends - Date.now();
+  el.innerHTML = `<div class="event-banner ${activeEvent.positive ? 'event-positive' : 'event-negative'}">
+    ${activeEvent.name}<br><span style="font-weight:400;font-size:12px">${activeEvent.desc} · ещё ${formatTime(remaining)}</span>
+  </div>`;
+
+  // Banner at top
+  const banner = document.getElementById("event-banner");
+  if (remaining > 0) {
+    banner.innerHTML = `<div class="event-banner ${activeEvent.positive ? 'event-positive' : 'event-negative'}" style="margin-bottom:12px">
+      ${activeEvent.name} — ${activeEvent.desc}
+    </div>`;
+  } else {
+    banner.innerHTML = "";
+  }
+}
+
+function renderStats() {
+  const s = state.stats || {};
+  document.getElementById("stats-list").innerHTML = `
+    <div class="stat-row"><span>🌾 Урожаев собрано</span><span class="stat-val">${s.total_harvests||0}</span></div>
+    <div class="stat-row"><span>🌱 Посажено</span><span class="stat-val">${s.total_planted||0}</span></div>
+    <div class="stat-row"><span>💰 Продано (🌱)</span><span class="stat-val">${s.total_sold||0}</span></div>
+    <div class="stat-row"><span>💼 Работ выполнено</span><span class="stat-val">${s.total_worked||0}</span></div>
+    <div class="stat-row"><span>🌱 Баланс</span><span class="stat-val">${state.coins}</span></div>
+    <div class="stat-row"><span>⭐ Поинты</span><span class="stat-val">${state.points}</span></div>
+  `;
+  renderAchievements();
+}
+
+function renderAchievements() {
+  const el = document.getElementById("ach-list");
+  el.innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = state.achievements?.includes(a.id);
+    const cur = a.stat === "coins" ? state.coins : (state.stats?.[a.stat] || 0);
+    return `<div class="ach-item ${unlocked ? 'unlocked' : 'locked'}">
+      <div class="ach-icon">${unlocked ? "🏅" : "🔒"}</div>
+      <div class="ach-info">
+        <div class="ach-name">${a.name}</div>
+        <div class="ach-desc">${a.desc} ${unlocked ? "" : `(${Math.min(cur, a.target)}/${a.target})`}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderAll() {
+  updateHeader();
+  renderShop();
+  renderFarm();
+  renderInventory();
+  renderEvents();
+  renderStats();
+  updateWorkBtn();
+}
+
+// ══════════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════════
+function selectPlot(idx) {
+  selectedPlot = idx;
+  renderFarm();
+}
+
+function selectSeed(id) {
+  selectedSeed = selectedSeed === id ? null : id;
+  renderShop();
+  updatePlotInfo();
+}
+
+function changePage(dir) {
+  currentPage = Math.max(0, Math.min(4, currentPage + dir));
+  selectedPlot = null;
+  renderFarm();
+}
+
+function buySeed(plantId) {
+  const plant = getPlant(plantId);
+  const price = getSeedPrice(plant);
+  if (state.coins < price) { toast(`Мало монет! Нужно ${price} 🌱`, "error"); return; }
+  state.coins -= price;
+  if (!state.seeds) state.seeds = {};
+  state.seeds[plantId] = (state.seeds[plantId] || 0) + 1;
+  saveState();
+  toast(`${plant.emoji} ${plant.name} куплена за ${price} 🌱`, "success");
+  renderAll();
+}
+
+function doPlant() {
+  if (selectedPlot === null || !selectedSeed) return;
+  const plot  = state.plots[selectedPlot];
+  const plant = getPlant(selectedSeed);
+  if (plot.status !== "empty") { toast("Грядка занята!", "error"); return; }
+  if (!state.seeds?.[selectedSeed] || state.seeds[selectedSeed] <= 0) { toast("Нет семян!", "error"); return; }
+
+  state.seeds[selectedSeed]--;
+  plot.status   = "growing";
+  plot.plantId  = selectedSeed;
+  plot.plantedAt = Date.now();
+  plot.stage    = 1;
+  state.stats.total_planted = (state.stats.total_planted || 0) + 1;
+  saveState();
+  checkAchievements();
+  toast(`${plant.emoji} ${plant.name} посажена! Растёт ${formatTime(plant.time)}`, "success");
+  renderAll();
+}
+
+function doHarvest() {
+  if (selectedPlot === null) return;
+  const plot = state.plots[selectedPlot];
+  if (plot.status !== "growing" || !isReady(plot)) { toast("Ещё не выросло!", "error"); return; }
+  harvestPlot(selectedPlot);
+  toast("✅ Собрано!", "success");
+  renderAll();
+}
+
+function harvestPlot(idx) {
+  const plot  = state.plots[idx];
+  const plant = getPlant(plot.plantId);
+  if (!plant) return;
+  const key = `harvest_${plant.id}`;
+  if (!state.inventory) state.inventory = {};
+  state.inventory[key] = (state.inventory[key] || 0) + 1;
+  plot.status = "empty"; plot.plantId = null; plot.plantedAt = null; plot.stage = 0;
+  state.stats.total_harvests = (state.stats.total_harvests || 0) + 1;
+  addPoints(plant.pts);
+  saveState();
+  checkAchievements();
+}
+
+function harvestAll() {
+  let count = 0;
+  state.plots.forEach((plot, i) => {
+    if (plot.status === "growing" && isReady(plot)) { harvestPlot(i); count++; }
+  });
+  if (count) { toast(`✅ Собрано ${count} растений!`, "success"); renderAll(); }
+  else toast("Нет готовых растений", "error");
+}
+
+function sellOne(itemId) {
+  const plant = getPlant(itemId.replace("harvest_",""));
+  if (!plant || !state.inventory?.[itemId]) return;
+  const price = getSellPrice(plant);
+  state.inventory[itemId]--;
+  if (state.inventory[itemId] <= 0) delete state.inventory[itemId];
+  addCoins(price);
+  state.stats.total_sold = (state.stats.total_sold || 0) + price;
+  saveState();
+  checkAchievements();
+  toast(`💰 +${price} 🌱`, "success");
+  renderAll();
+}
+
+function sellAll() {
+  let total = 0;
+  const inv = state.inventory || {};
+  Object.entries(inv).forEach(([id, qty]) => {
+    if (qty <= 0) return;
+    const plant = getPlant(id.replace("harvest_",""));
+    if (!plant) return;
+    const price = getSellPrice(plant) * qty;
+    total += price;
+    delete state.inventory[id];
+  });
+  if (!total) { toast("Нечего продавать", "error"); return; }
+  addCoins(total);
+  state.stats.total_sold = (state.stats.total_sold || 0) + total;
+  saveState();
+  checkAchievements();
+  toast(`💰 Продано на ${total} 🌱!`, "success");
+  renderAll();
+}
+
+function doWork() {
+  const now = Date.now();
+  const cd  = 3 * 24 * 60 * 60 * 1000;
+  if (now - (state.lastWork || 0) < cd) { toast("Кулдаун ещё не прошёл!", "error"); return; }
+  const amount = Math.floor(Math.random() * 51) + 50;
+  addCoins(amount);
+  state.lastWork = now;
+  state.stats.total_worked = (state.stats.total_worked || 0) + 1;
+  saveState();
+  checkAchievements();
+  toast(`💼 +${amount} 🌱 заработано!`, "success");
+  updateWorkBtn();
+  renderStats();
+}
+
+function updateWorkBtn() {
+  const btn = document.getElementById("work-btn");
+  const cd  = document.getElementById("work-cd");
+  const now = Date.now();
+  const left = (state.lastWork || 0) + 3*24*60*60*1000 - now;
+  if (left > 0) {
+    btn.disabled = true;
+    cd.textContent = `Следующий раз через ${formatTime(left)}`;
+  } else {
+    btn.disabled = false;
+    cd.textContent = "";
+  }
+}
+
+function doConvert() {
+  const amount = parseInt(document.getElementById("convert-input").value);
+  if (!amount || amount < 5) { document.getElementById("convert-result").textContent = "Минимум 5 🌱"; return; }
+  if (state.coins < amount) { document.getElementById("convert-result").textContent = "Мало фармкоинов!"; return; }
+  const coins = Math.floor(amount / 5);
+  addCoins(-amount);
+  document.getElementById("convert-result").textContent = `✅ ${amount} 🌱 → ${coins} 🪙 (симуляция)`;
+  saveState();
+}
+
+// ══════════════════════════════════════════════
+// ACHIEVEMENTS
+// ══════════════════════════════════════════════
+function checkAchievements() {
+  if (!state.achievements) state.achievements = [];
+  ACHIEVEMENTS.forEach(a => {
+    if (state.achievements.includes(a.id)) return;
+    const cur = a.stat === "coins" ? state.coins : (state.stats?.[a.stat] || 0);
+    if (cur >= a.target) {
+      state.achievements.push(a.id);
+      saveState();
+      setTimeout(() => toast(`🏅 Достижение: ${a.name}!`, "info"), 200);
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════════
+function triggerRandomEvent() {
+  if (activeEvent && activeEvent.ends > Date.now()) return;
+  if (Math.random() > 0.3) return;
+  const ev = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+  activeEvent = {...ev, ends: Date.now() + ev.duration};
+  toast(`⚡ Событие: ${ev.name}`, ev.positive ? "success" : "error");
+  renderEvents();
+  renderShop(); // update prices
+}
+
+function checkEvent() {
+  if (activeEvent && Date.now() >= activeEvent.ends) {
+    activeEvent = null;
+    renderEvents();
+    renderShop();
+  }
+}
+
+// ══════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach((t,i) => t.classList.toggle("active", ["shop","stats"][i] === tab));
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.getElementById(`tab-${tab}`).classList.add("active");
+  if (tab === "stats") renderStats();
+}
+
+// ══════════════════════════════════════════════
+// LOOP
+// ══════════════════════════════════════════════
+setInterval(() => {
+  checkEvent();
+  renderFarm();
+  updateWorkBtn();
+  renderEvents();
+}, 1000);
+
+setInterval(() => {
+  triggerRandomEvent();
+}, 30000);
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+renderAll();
+</script>
+</body>
+</html>
