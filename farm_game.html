@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌾 Myata Farm</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0e11;--bg2:#141519;--bg3:#1a1c23;--border:rgba(255,255,255,0.07);--accent:#5865F2;--green:#57F287;--gold:#FEE75C;--red:#ED4245;--pink:#eb459e;--text:#e3e5e8;--muted:#6d7280;--card:rgba(255,255,255,0.04)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
+
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:rgba(13,14,17,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;color:var(--text)}
+.nav-dot{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.nav-right{display:flex;align-items:center;gap:10px}
+.badge{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+
+/* TABS NAV */
+.main-tabs{display:flex;gap:4px;padding:12px 24px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto}
+.main-tab{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap;border:none;background:none;font-family:'Outfit',sans-serif}
+.main-tab.active{background:rgba(88,101,242,.15);color:#949cf7}
+.main-tab:hover:not(.active){color:var(--text);background:var(--card)}
+
+/* MAIN LAYOUT */
+.page{display:none;padding:16px 20px;max-width:1400px;margin:0 auto}
+.page.active{display:grid}
+#page-farm{grid-template-columns:260px 1fr 280px;gap:14px}
+#page-flowers{grid-template-columns:220px 1fr 260px;gap:14px}
+#page-pasture{grid-template-columns:240px 1fr 260px;gap:14px}
+#page-cafe{grid-template-columns:1fr 1fr;gap:14px}
+#page-factory{grid-template-columns:1fr 1fr;gap:14px}
+
+/* PANELS */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.panel-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+/* BUTTONS */
+.btn{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-green{background:rgba(87,242,135,.12);color:var(--green);border:1px solid rgba(87,242,135,.2)}
+.btn-green:hover:not(:disabled){background:rgba(87,242,135,.22)}
+.btn-blue{background:rgba(88,101,242,.12);color:#949cf7;border:1px solid rgba(88,101,242,.2)}
+.btn-blue:hover:not(:disabled){background:rgba(88,101,242,.22)}
+.btn-gold{background:rgba(254,231,92,.12);color:var(--gold);border:1px solid rgba(254,231,92,.2)}
+.btn-gold:hover:not(:disabled){background:rgba(254,231,92,.22)}
+.btn-red{background:rgba(237,66,69,.12);color:var(--red);border:1px solid rgba(237,66,69,.2)}
+.btn-red:hover:not(:disabled){background:rgba(237,66,69,.22)}
+.btn-pink{background:rgba(235,69,158,.12);color:var(--pink);border:1px solid rgba(235,69,158,.2)}
+.btn-pink:hover:not(:disabled){background:rgba(235,69,158,.22)}
+.btn-full{width:100%;justify-content:center}
+.btn-sm{padding:4px 10px;font-size:11px}
+
+/* SHOP ITEMS */
+.shop-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent;transition:all .15s;margin-bottom:5px}
+.shop-item:hover{background:var(--card);border-color:var(--border)}
+.shop-item.sel{background:rgba(88,101,242,.1);border-color:rgba(88,101,242,.25)}
+.si-emoji{font-size:18px;width:24px;text-align:center}
+.si-info{flex:1;min-width:0}
+.si-name{font-size:13px;font-weight:600}
+.si-price{font-size:11px;color:var(--muted)}
+.si-sell{font-size:10px;color:var(--green)}
+.si-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.si-qty{font-size:11px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace}
+
+/* FARM GRID */
+.farm-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px}
+.plot{aspect-ratio:1;border-radius:9px;background:#1a1208;border:2px solid #2a1e0e;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .2s;position:relative;font-size:20px;user-select:none}
+.plot:hover{border-color:var(--accent);transform:scale(1.04);z-index:2}
+.plot.sel{border-color:var(--gold)!important;box-shadow:0 0 10px rgba(254,231,92,.3)}
+.plot.growing{background:#1a2810;border-color:#2d4a18}
+.plot.ready{background:#1a2a10;border-color:var(--green);animation:glow 1.5s ease-in-out infinite}
+.plot.flower-growing{background:#1a1020;border-color:#3d1a50}
+.plot.flower-ready{background:#1a0f20;border-color:var(--pink);animation:glow-pink 1.5s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 5px rgba(87,242,135,.2)}50%{box-shadow:0 0 14px rgba(87,242,135,.5)}}
+@keyframes glow-pink{0%,100%{box-shadow:0 0 5px rgba(235,69,158,.2)}50%{box-shadow:0 0 14px rgba(235,69,158,.5)}}
+.plot-bar{position:absolute;bottom:2px;left:3px;right:3px;height:3px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.plot-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#3ba55d);transition:width .5s}
+.plot-bar-fill.flower{background:linear-gradient(90deg,var(--pink),#c4289a)}
+.plot-num{position:absolute;top:2px;left:4px;font-size:8px;color:var(--muted);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* PLOT INFO */
+.plot-info{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;min-height:72px}
+.pi-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.pi-sub{font-size:12px;color:var(--muted)}
+.progress-bar{background:rgba(255,255,255,.07);border-radius:99px;height:7px;overflow:hidden;margin:7px 0 3px}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#3ba55d);transition:width .5s}
+.progress-fill.flower{background:linear-gradient(90deg,var(--pink),#c4289a)}
+
+/* FARM ACTIONS */
+.farm-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+/* INVENTORY */
+.inv-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:7px;background:var(--bg3);margin-bottom:5px}
+.ii-left{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.ii-right{display:flex;align-items:center;gap:7px}
+.ii-qty{font-size:12px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace}
+
+/* EVENTS */
+.ev-banner{border-radius:9px;padding:9px 12px;margin-bottom:10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px}
+.ev-pos{background:rgba(87,242,135,.08);border:1px solid rgba(87,242,135,.18);color:var(--green)}
+.ev-neg{background:rgba(237,66,69,.08);border:1px solid rgba(237,66,69,.18);color:var(--red)}
+.ev-neu{background:rgba(88,101,242,.08);border:1px solid rgba(88,101,242,.18);color:#949cf7}
+
+/* PASTURE */
+.pasture-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px}
+.pc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pc-name{font-size:14px;font-weight:700}
+.pc-animals{display:flex;gap:5px;margin-bottom:8px}
+.animal-slot{width:36px;height:36px;border-radius:8px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--bg);cursor:pointer;transition:all .15s}
+.animal-slot.filled{border-color:#3d5016;background:#1a2810}
+.animal-slot.bonus{border-color:var(--gold)!important;background:rgba(254,231,92,.08)!important}
+.animal-slot:hover{border-color:var(--accent)}
+.pc-product{font-size:12px;color:var(--muted);margin-bottom:6px}
+.pc-cd{font-size:12px;color:var(--gold)}
+
+/* CAFE */
+.recipe-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:7px;transition:all .15s}
+.recipe-card:hover{border-color:var(--border)}
+.recipe-card.owned{border-color:rgba(87,242,135,.2)}
+.rc-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.rc-emoji{font-size:20px}
+.rc-name{font-size:14px;font-weight:700;flex:1}
+.rc-price{font-size:12px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace}
+.rc-ingr{font-size:11px;color:var(--muted);margin-bottom:6px}
+.rc-footer{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.rc-sell{color:var(--green);font-weight:600}
+.rc-time{color:var(--muted)}
+
+/* COOKING QUEUE */
+.cook-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)}
+.cook-emoji{font-size:20px}
+.cook-info{flex:1}
+.cook-name{font-size:13px;font-weight:600}
+.cook-time{font-size:12px;color:var(--muted)}
+.cook-ready{font-size:12px;color:var(--green);font-weight:600}
+
+/* LOCK OVERLAY */
+.locked-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;gap:12px}
+.lock-icon{font-size:48px}
+.lock-title{font-size:18px;font-weight:700}
+.lock-desc{font-size:14px;color:var(--muted);line-height:1.6}
+.lock-progress{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;width:100%;max-width:320px;text-align:left}
+.lp-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.lp-row:last-child{border:none}
+.lp-val{font-weight:700;font-family:'JetBrains Mono',monospace}
+.lp-ok{color:var(--green)}
+.lp-no{color:var(--red)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:11px 16px;font-size:13px;font-weight:500;z-index:999;transform:translateY(16px);opacity:0;transition:all .25s;pointer-events:none;max-width:280px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:rgba(87,242,135,.35);color:var(--green)}
+.toast.err{border-color:rgba(237,66,69,.35);color:var(--red)}
+.toast.info{border-color:rgba(88,101,242,.35);color:#949cf7}
+
+/* STAT */
+.stat-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.stat-row:last-child{border:none}
+.stat-val{font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--gold)}
+
+/* ACH */
+.ach-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;margin-bottom:5px}
+.ach-item.ok{background:rgba(87,242,135,.07);border:1px solid rgba(87,242,135,.12)}
+.ach-item.no{background:var(--bg3);border:1px solid var(--border);opacity:.6}
+.ach-info .ach-name{font-size:12px;font-weight:600}
+.ach-info .ach-desc{font-size:10px;color:var(--muted)}
+
+/* WORK */
+.work-section{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+
+/* TABS inside panel */
+.ptab-bar{display:flex;gap:3px;margin-bottom:12px}
+.ptab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;border:none;background:none;font-family:'Outfit',sans-serif}
+.ptab.active{background:rgba(88,101,242,.12);color:#949cf7}
+.ptcontent{display:none}.ptcontent.active{display:block}
+
+@media(max-width:1100px){#page-farm,#page-flowers,#page-pasture{grid-template-columns:220px 1fr}#page-farm>div:last-child,#page-flowers>div:last-child,#page-pasture>div:last-child{display:none}}
+@media(max-width:720px){#page-farm,#page-flowers,#page-pasture{grid-template-columns:1fr}#page-farm>div:first-child,#page-flowers>div:first-child,#page-pasture>div:first-child{display:none}#page-cafe,#page-factory{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><div class="nav-dot">🌿</div> Myata Farm</div>
+  <div class="nav-right">
+    <div class="badge">🌱 <span id="c-coins">100</span></div>
+    <div class="badge">⭐ <span id="c-pts">0</span></div>
+  </div>
+</nav>
+
+<div class="main-tabs">
+  <button class="main-tab active" onclick="showPage('farm')">🌾 Ферма</button>
+  <button class="main-tab" onclick="showPage('flowers')" id="tab-flowers">🌸 Цветы</button>
+  <button class="main-tab" onclick="showPage('pasture')" id="tab-pasture">🐾 Пастбище</button>
+  <button class="main-tab" onclick="showPage('cafe')" id="tab-cafe">🍽️ Кафе</button>
+  <button class="main-tab" onclick="showPage('factory')" id="tab-factory">🏭 Завод</button>
+</div>
+
+<!-- ═══ FARM PAGE ═══ -->
+<div id="page-farm" class="page active">
+  <!-- Left: shop -->
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="ptab-bar">
+      <button class="ptab active" onclick="switchPTab('farm','shop')">🛒 Магазин</button>
+      <button class="ptab" onclick="switchPTab('farm','stats')">📊 Стата</button>
+    </div>
+    <div id="farm-ptab-shop" class="ptcontent active">
+      <div id="shop-list"></div>
+      <div class="work-section">
+        <button class="btn btn-gold btn-full" onclick="doWork()" id="work-btn">💼 Подработать (+50–100🌱)</button>
+        <div id="work-cd" style="font-size:11px;color:var(--muted);text-align:center;margin-top:5px"></div>
+      </div>
+    </div>
+    <div id="farm-ptab-stats" class="ptcontent">
+      <div id="stats-list"></div>
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
+        <div class="panel-title">🏅 Достижения</div>
+        <div id="ach-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center: farm grid -->
+  <div class="panel" style="display:flex;flex-direction:column">
+    <div id="farm-ev-banner"></div>
+    <div class="panel-title">🌾 Ферма <span style="margin-left:auto;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">стр. <span id="farm-page-lbl">1/5</span></span></div>
+    <div class="farm-grid" id="farm-grid"></div>
+    <div class="plot-info" id="farm-plot-info">
+      <div class="pi-name" style="color:var(--muted)">Выберите грядку</div>
+      <div class="pi-sub">Нажмите на клетку</div>
+    </div>
+    <div class="farm-btns" style="margin-bottom:7px">
+      <button class="btn btn-green" id="btn-plant" onclick="doPlant()">🌱 Посадить</button>
+      <button class="btn btn-gold" id="btn-harvest" onclick="doHarvest()">✅ Собрать</button>
+      <button class="btn btn-blue" onclick="farmChangePage(-1)">◀ Назад</button>
+      <button class="btn btn-blue" onclick="farmChangePage(1)">Вперёд ▶</button>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="harvestAll('farm')">✅ Собрать всё готовое</button>
+  </div>
+
+  <!-- Right: inventory -->
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="panel-title">🎒 Инвентарь (урожай)</div>
+    <div id="farm-inv"></div>
+    <button class="btn btn-red btn-full" style="margin-bottom:12px" onclick="sellAll('farm')">📦 Продать всё</button>
+    <div style="border-top:1px solid var(--border);padding-top:12px">
+      <div class="panel-title">⚡ События</div>
+      <div id="farm-events-panel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FLOWERS PAGE ═══ -->
+<div id="page-flowers" class="page">
+  <!-- Left: flower shop -->
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="panel-title">🌸 Цветочный магазин</div>
+    <div id="flower-shop-list"></div>
+  </div>
+  <!-- Center: flower farm -->
+  <div class="panel" style="display:flex;flex-direction:column" id="flower-farm-panel">
+    <div id="flower-ev-banner"></div>
+    <div class="panel-title">🌸 Цветочная ферма <span style="margin-left:auto;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">стр. <span id="flower-page-lbl">1/2</span></span></div>
+    <div class="farm-grid" id="flower-grid" style="grid-template-columns:repeat(3,1fr)"></div>
+    <div class="plot-info" id="flower-plot-info">
+      <div class="pi-name" style="color:var(--muted)">Выберите грядку</div>
+      <div class="pi-sub">Нажмите на клетку</div>
+    </div>
+    <div class="farm-btns" style="margin-bottom:7px">
+      <button class="btn btn-pink" id="btn-plant-flower" onclick="doPlantFlower()">🌱 Посадить</button>
+      <button class="btn btn-gold" id="btn-harvest-flower" onclick="doHarvestFlower()">✅ Собрать</button>
+      <button class="btn btn-blue" onclick="flowerChangePage(-1)">◀ Назад</button>
+      <button class="btn btn-blue" onclick="flowerChangePage(1)">Вперёд ▶</button>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="harvestAll('flower')">✅ Собрать всё готовое</button>
+  </div>
+  <!-- Right: flower inv -->
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="panel-title">💐 Инвентарь цветов</div>
+    <div id="flower-inv"></div>
+    <button class="btn btn-red btn-full" style="margin-bottom:12px" onclick="sellAll('flower')">📦 Продать всё</button>
+    <div style="border-top:1px solid var(--border);padding-top:12px">
+      <div class="panel-title">⚡ События</div>
+      <div id="flower-events-panel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PASTURE PAGE ═══ -->
+<div id="page-pasture" class="page">
+  <!-- Left: animal shop -->
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="panel-title">🐾 Магазин животных</div>
+    <div id="animal-shop-list"></div>
+  </div>
+  <!-- Center: pastures -->
+  <div class="panel" id="pasture-panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div id="pasture-ev-banner"></div>
+    <div class="panel-title">🐾 Пастбище <span style="margin-left:auto;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">стр. <span id="pasture-page-lbl">1/2</span></span></div>
+    <div id="pasture-grid"></div>
+    <div style="display:flex;gap:7px;margin-top:10px">
+      <button class="btn btn-blue" onclick="pastureChangePage(-1)">◀ Назад</button>
+      <button class="btn btn-blue" onclick="pastureChangePage(1)">Вперёд ▶</button>
+    </div>
+  </div>
+  <!-- Right: pasture inv + events -->
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="panel-title">🥩 Продукты пастбища</div>
+    <div id="pasture-inv"></div>
+    <button class="btn btn-red btn-full" style="margin-bottom:12px" onclick="sellAll('pasture')">📦 Продать всё</button>
+    <div style="border-top:1px solid var(--border);padding-top:12px">
+      <div class="panel-title">⚡ События</div>
+      <div id="pasture-events-panel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CAFE PAGE ═══ -->
+<div id="page-cafe" class="page">
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)" id="cafe-panel">
+    <div class="panel-title">🍽️ Рецепты кафе</div>
+    <div id="cafe-recipes"></div>
+  </div>
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="panel-title">⏳ Кухня (готовка)</div>
+    <div id="cafe-queue"></div>
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+      <button class="btn btn-green btn-full" onclick="collectCafe()">📦 Собрать готовое</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FACTORY PAGE ═══ -->
+<div id="page-factory" class="page">
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)" id="factory-panel">
+    <div class="ptab-bar">
+      <button class="ptab active" onclick="switchPTab('factory','p1')">Стр. 1</button>
+      <button class="ptab" onclick="switchPTab('factory','p2')">Стр. 2</button>
+    </div>
+    <div id="factory-ptab-p1" class="ptcontent active">
+      <div id="factory-recipes-1"></div>
+    </div>
+    <div id="factory-ptab-p2" class="ptcontent">
+      <div id="factory-recipes-2"></div>
+    </div>
+  </div>
+  <div class="panel" style="overflow-y:auto;max-height:calc(100vh-130px)">
+    <div class="panel-title">⏳ Очередь производства</div>
+    <div id="factory-queue"></div>
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+      <button class="btn btn-green btn-full" onclick="collectFactory()">📦 Собрать готовое</button>
+    </div>
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+      <div class="panel-title">⚡ События завода</div>
+      <div id="factory-events-panel"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════
+const PLANTS = [
+  {id:"wheat",      name:"Пшеница",  emoji:"🌾", buy:50,  sell:65,  time:14400,  pts:10},
+  {id:"carrot",     name:"Морковь",  emoji:"🥕", buy:70,  sell:91,  time:21600,  pts:15},
+  {id:"potato",     name:"Картофель",emoji:"🥔", buy:80,  sell:104, time:28800,  pts:18},
+  {id:"cabbage",    name:"Капуста",  emoji:"🥬", buy:90,  sell:117, time:36000,  pts:20},
+  {id:"horseradish",name:"Хрен",     emoji:"🌿", buy:100, sell:130, time:43200,  pts:22},
+  {id:"tea",        name:"Чай",      emoji:"🍵", buy:120, sell:156, time:50400,  pts:28},
+  {id:"grape",      name:"Виноград", emoji:"🍇", buy:150, sell:195, time:64800,  pts:35},
+  {id:"bamboo",     name:"Бамбук",   emoji:"🎋", buy:200, sell:260, time:86400,  pts:45},
+  {id:"wisteria",   name:"Глициния", emoji:"🌸", buy:300, sell:390, time:129600, pts:65},
+  {id:"cactus",     name:"Кактус",   emoji:"🌵", buy:400, sell:500, time:172800, pts:85},
+  {id:"coconut",    name:"Кокос",    emoji:"🥥", buy:550, sell:690, time:216000, pts:110},
+  {id:"tobacco",    name:"Табак",    emoji:"🚬", buy:750, sell:930, time:259200, pts:150},
+];
+
+const FLOWERS = [
+  {id:"sunflower", name:"Подсолнух",emoji:"🌻", buy:800,  sell:1040, time:43200,  pts:200},
+  {id:"daisy",     name:"Ромашка",  emoji:"🌼", buy:1000, sell:1300, time:57600,  pts:250},
+  {id:"tulip",     name:"Тюльпан",  emoji:"🌷", buy:1400, sell:1820, time:86400,  pts:350},
+  {id:"rose",      name:"Роза",     emoji:"🌹", buy:2000, sell:2600, time:129600, pts:500},
+  {id:"lotus",     name:"Лотос",    emoji:"🪷", buy:3000, sell:3900, time:172800, pts:750},
+  {id:"lavender",  name:"Лаванда",  emoji:"💜", buy:5000, sell:6500, time:259200, pts:1200},
+];
+
+const ANIMALS = [
+  {id:"cow",     name:"Корова", emoji:"🐄", buy:3000, product:"milk",    pName:"Молоко",  pEmoji:"🥛", pSell:200, cd:21600, bonus:"beef",       bName:"Говядина",   bEmoji:"🥩", bSell:800},
+  {id:"sheep",   name:"Овца",   emoji:"🐑", buy:2000, product:"wool",    pName:"Шерсть",  pEmoji:"🧶", pSell:150, cd:28800, bonus:"mutton",      bName:"Баранина",   bEmoji:"🥩", bSell:600},
+  {id:"chicken", name:"Курица", emoji:"🐓", buy:1000, product:"egg",     pName:"Яйцо",    pEmoji:"🥚", pSell:100, cd:14400, bonus:"chicken_meat",bName:"Курятина",   bEmoji:"🍗", bSell:400},
+  {id:"pig",     name:"Свинья", emoji:"🐖", buy:2500, product:"lard",    pName:"Сало",    pEmoji:"🧈", pSell:180, cd:36000, bonus:"bacon",       bName:"Бекон",      bEmoji:"🥓", bSell:700},
+  {id:"rabbit",  name:"Кролик", emoji:"🐇", buy:1500, product:"fluff",   pName:"Пух",     pEmoji:"🪶", pSell:130, cd:43200, bonus:"rabbit_meat", bName:"Крольчатина",bEmoji:"🥩", bSell:500},
+];
+
+const CAFE_RECIPES = [
+  {id:"salad",       name:"Овощной салат",   emoji:"🥗",  price:500,  sell:25,  time:600,   ingr:{carrot:2,cabbage:2}},
+  {id:"bread",       name:"Пшеничный хлеб",  emoji:"🍞",  price:300,  sell:15,  time:480,   ingr:{wheat:3}},
+  {id:"mashed",      name:"Картофельное пюре",emoji:"🥔", price:400,  sell:20,  time:720,   ingr:{potato:3}},
+  {id:"wine",        name:"Виноградное вино", emoji:"🍷",  price:1200, sell:60,  time:2700,  ingr:{grape:4}},
+  {id:"tea_cup",     name:"Чашка чая",        emoji:"🍵",  price:600,  sell:30,  time:900,   ingr:{tea:2}},
+  {id:"stew",        name:"Овощное рагу",     emoji:"🥘",  price:900,  sell:45,  time:1800,  ingr:{potato:2,carrot:2,cabbage:1}},
+  {id:"hr_sauce",    name:"Соус из хрена",    emoji:"🌿",  price:700,  sell:35,  time:1200,  ingr:{horseradish:3}},
+  {id:"bamboo_soup", name:"Бамбуковый суп",   emoji:"🍜",  price:1000, sell:50,  time:2100,  ingr:{bamboo:2,carrot:1}},
+  {id:"wist_tea",    name:"Чай из глицинии",  emoji:"🌸",  price:1500, sell:75,  time:3600,  ingr:{wisteria:2,tea:1}},
+  {id:"crispy",      name:"Хрустящий салат",  emoji:"🥗",  price:800,  sell:40,  time:1500,  ingr:{cabbage:3,horseradish:1}},
+  {id:"carrot_cake", name:"Морковный пирог",  emoji:"🍰",  price:1100, sell:55,  time:2400,  ingr:{carrot:3,wheat:2}},
+  {id:"cactus_juice",name:"Кактусовый сок",   emoji:"🌵",  price:1800, sell:90,  time:5400,  ingr:{cactus:2}},
+  {id:"coconut_des", name:"Кокосовый десерт", emoji:"🥥",  price:2500, sell:125, time:7200,  ingr:{coconut:2,wisteria:1}},
+  {id:"tobacco_brew",name:"Табачный настой",  emoji:"🚬",  price:3000, sell:150, time:10800, ingr:{tobacco:2,tea:1}},
+  {id:"royal_feast", name:"Королевский банкет",emoji:"👑", price:5000, sell:250, time:21600, ingr:{wheat:2,grape:2,coconut:1,tobacco:1}},
+  // Букеты
+  {id:"sunny_b",     name:"Солнечный букет",  emoji:"🌻",  price:800,  sell:40,  time:900,   ingr:{sunflower:3},flower:true},
+  {id:"field_b",     name:"Полевой букет",    emoji:"🌼",  price:1200, sell:60,  time:1200,  ingr:{daisy:3,tulip:1},flower:true},
+  {id:"rose_b",      name:"Букет роз",        emoji:"🌹",  price:2500, sell:125, time:1800,  ingr:{rose:3},flower:true},
+  {id:"lavender_b",  name:"Лавандовый букет", emoji:"💜",  price:3000, sell:150, time:2100,  ingr:{lavender:2,daisy:2},flower:true},
+  {id:"spring_b",    name:"Весенний букет",   emoji:"🌷",  price:2000, sell:100, time:1500,  ingr:{tulip:2,rose:1,daisy:1},flower:true},
+  {id:"lotus_b",     name:"Лотосовый букет",  emoji:"🪷",  price:4000, sell:200, time:3000,  ingr:{lotus:2,tulip:2},flower:true},
+  {id:"luxury_b",    name:"Роскошный букет",  emoji:"💐",  price:6000, sell:300, time:4500,  ingr:{rose:2,lotus:1,lavender:1},flower:true},
+  {id:"imperial_b",  name:"Императорский букет",emoji:"👑",price:10000,sell:500, time:7200,  ingr:{lavender:3,lotus:2,rose:2},flower:true},
+];
+
+const FACTORY_RECIPES = [
+  {id:"cheese",       name:"Сыр",              emoji:"🧀", sell:800,  time:1800, ingr:{milk:3}},
+  {id:"cheesecake",   name:"Творожный торт",   emoji:"🍰", sell:1200, time:2700, ingr:{milk:2,egg:2}},
+  {id:"pancakes",     name:"Блины",            emoji:"🥞", sell:600,  time:1200, ingr:{egg:3,milk:1}},
+  {id:"fried_eggs",   name:"Яичница",          emoji:"🥚", sell:400,  time:900,  ingr:{egg:4}},
+  {id:"wool_sweater", name:"Шерстяной свитер", emoji:"🧣", sell:1500, time:3600, ingr:{wool:4}},
+  {id:"down_pillow",  name:"Пуховая подушка",  emoji:"🛋️",sell:2000, time:5400, ingr:{fluff:5}},
+  {id:"roast",        name:"Жаркое",           emoji:"🥩", sell:1800, time:2400, ingr:{beef:1,potato:2}},
+  {id:"bacon_sand",   name:"Бутерброд с беконом",emoji:"🥓",sell:900, time:1500, ingr:{bacon:2,wheat:2}},
+  {id:"rabbit_sauce", name:"Крольчатина в соусе",emoji:"🍖",sell:1400,time:2100, ingr:{rabbit_meat:1,carrot:2}},
+  {id:"grand_feast",  name:"Пир горой",        emoji:"👑", sell:8000, time:10800,ingr:{beef:1,mutton:1,bacon:1,egg:2}},
+  {id:"cheese_wine",  name:"Сырное вино",      emoji:"🍷", sell:2500, time:7200, ingr:{cheese:1,grape:3}},
+  {id:"meat_salad",   name:"Мясной салат",     emoji:"🥗", sell:1100, time:1800, ingr:{rabbit_meat:1,cabbage:2,carrot:1}},
+  {id:"egg_bread",    name:"Яичный хлеб",      emoji:"🍞", sell:700,  time:1500, ingr:{egg:2,wheat:4}},
+  {id:"veggie_stew",  name:"Овощное рагу с мясом",emoji:"🥘",sell:2200,time:3000,ingr:{beef:1,potato:2,cabbage:1,carrot:1}},
+  {id:"bamboo_chick", name:"Бамбуковый суп с курицей",emoji:"🫕",sell:1900,time:2400,ingr:{chicken_meat:1,bamboo:2,carrot:1}},
+  {id:"meatballs",    name:"Котлеты",          emoji:"🧆", sell:1600, time:2100, ingr:{mutton:1,wheat:2,egg:1}},
+  {id:"steak",        name:"Стейк с хреном",   emoji:"🥩", sell:2000, time:2700, ingr:{beef:1,horseradish:2}},
+  {id:"lotus_jam",    name:"Варенье из лотоса",emoji:"🫙", sell:2800, time:3600, ingr:{lotus:2,wheat:1}},
+  {id:"milk_tea",     name:"Чай с молоком",    emoji:"🍵", sell:900,  time:1200, ingr:{milk:2,tea:2}},
+  {id:"imperial_din", name:"Императорский ужин",emoji:"👑",sell:15000,time:18000,ingr:{beef:1,chicken_meat:1,lotus:1,tobacco:1,egg:2}},
+];
+
+const FARM_EVENTS = [
+  {id:"dew",    name:"🌿 Утренняя роса",       desc:"+20% скорость",  pos:true,  farmMult:1.2, dur:1800000},
+  {id:"export", name:"🚢 Срочный экспорт",     desc:"+20% продажа",   pos:true,  sellMult:1.2, dur:2400000},
+  {id:"import", name:"📦 Проблемы с импортом", desc:"+30% покупка",   pos:false, buyMult:1.3,  dur:3600000},
+  {id:"drought",name:"🌵 Засуха",              desc:"-20% скорость",  pos:false, farmMult:0.8, dur:2400000},
+];
+const FLOWER_EVENTS = [
+  {id:"rain",   name:"🌧️ Затяжные дожди",    desc:"-20% продажа цветов",pos:false,sellMult:0.8, dur:2700000},
+  {id:"summer", name:"☀️ Тёплое лето",        desc:"+30% рост цветов",   pos:true, farmMult:1.3, dur:2400000},
+  {id:"strike", name:"👷 Забастовка",         desc:"-50% рост цветов",   pos:false,farmMult:0.5, dur:1800000},
+];
+const PASTURE_EVENTS = [
+  {id:"epidemic", name:"🤒 Эпидемия",          desc:"Нет продуктов",      pos:false,noProduct:true,dur:2700000},
+  {id:"graze",    name:"🌿 Хороший выпас",     desc:"+30% скорость",      pos:true, cdMult:1.3,   dur:2400000},
+  {id:"modernize",name:"⚡ Модернизация",      desc:"+25% скорость завода",pos:true, factoryMult:1.25,dur:2100000},
+  {id:"crisis",   name:"📉 Кризис рынка",      desc:"-30% продажа завода", pos:false,factorySell:0.7,dur:3000000},
+];
+
+// CAFE/FLOWER unlock thresholds
+const CAFE_REQ = {pts:3000, coins:5000};
+const FLOWER_REQ = {cafeOpen:true, pts:7000, coins:10000};
+const FACTORY_REQ = {flowerOpen:true, pts:10000, coins:20000};
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+function defaultState(){
+  return {
+    coins:100, points:0,
+    plots:     Array.from({length:25},(_,i)=>({slot:i,status:"empty",plantId:null,plantedAt:null})),
+    fPlots:    Array.from({length:6}, (_,i)=>({slot:i,status:"empty",plantId:null,plantedAt:null})),
+    pastures:  Array.from({length:4}, (_,i)=>({slot:i,animalId:null,count:0,lastCollect:0})),
+    seeds:{}, fSeeds:{}, animals:{},
+    inv:{},
+    cafeOpen:true, flowerOpen:true, factoryOpen:true,
+    cafeRecipes:[], cafeQueue:[],
+    factoryQueue:[],
+    stats:{total_harvests:0,total_sold:0,total_planted:0,total_worked:0,flower_harvests:0,factory_made:0},
+    achievements:[],
+    lastWork:0,
+    farmEvent:null, flowerEvent:null, pastureEvent:null,
+  };
+}
+let S = loadState();
+
+function loadState(){
+  try{ const s=localStorage.getItem("myata_farm_v2"); if(s) return {...defaultState(),...JSON.parse(s)}; }catch(e){}
+  return defaultState();
+}
+function save(){ try{localStorage.setItem("myata_farm_v2",JSON.stringify(S));}catch(e){} }
+
+// ════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════
+const P = id => PLANTS.find(p=>p.id===id);
+const F = id => FLOWERS.find(f=>f.id===id);
+const A = id => ANIMALS.find(a=>a.id===id);
+const CR= id => CAFE_RECIPES.find(r=>r.id===id);
+const FR= id => FACTORY_RECIPES.find(r=>r.id===id);
+
+function fmtTime(ms){
+  const s=Math.floor(ms/1000);
+  if(s<60)return s+"с";
+  if(s<3600)return Math.floor(s/60)+"м "+s%60+"с";
+  return Math.floor(s/3600)+"ч "+Math.floor((s%3600)/60)+"м";
+}
+
+function farmEventMult(){ return S.farmEvent?.farmMult||1; }
+function flowerEventMult(){ return S.flowerEvent?.farmMult||1; }
+function farmSellMult(){ return S.farmEvent?.sellMult||1; }
+function flowerSellMult(){ return S.flowerEvent?.sellMult||1; }
+function farmBuyMult(){ return S.farmEvent?.buyMult||1; }
+function pastureCD(animal){ const ev=S.pastureEvent; return ev?.cdMult ? animal.cd/ev.cdMult : animal.cd; }
+function factoryMult(){ return S.pastureEvent?.factoryMult||1; }
+function factorySellMult(){ return S.pastureEvent?.factorySell||1; }
+
+function calcProg(plot, plant, mult){ if(!plot.plantedAt)return 0; return Math.min(1,(Date.now()-plot.plantedAt)*mult/plant.time); }
+
+function invGet(id){ return S.inv[id]||0; }
+function invAdd(id,n){ S.inv[id]=(S.inv[id]||0)+n; if(S.inv[id]<=0)delete S.inv[id]; save(); }
+function invRemove(id,n){ if((S.inv[id]||0)<n)return false; S.inv[id]-=n; if(S.inv[id]<=0)delete S.inv[id]; save(); return true; }
+
+function toast(msg,type="info"){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.className=`toast ${type} show`;
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className="toast",2200);
+}
+
+function updateHeader(){
+  document.getElementById("c-coins").textContent=S.coins.toLocaleString();
+  document.getElementById("c-pts").textContent=S.points.toLocaleString();
+  
+}
+
+function checkAchs(){
+  const ACHS=[
+    {id:"first_h",  name:"🌾 Первый урожай",  stat:"total_harvests", t:1},
+    {id:"h50",      name:"🌾 Жнец I",          stat:"total_harvests", t:50},
+    {id:"h500",     name:"🌾 Жнец II",         stat:"total_harvests", t:500},
+    {id:"s1k",      name:"💰 Торговец I",      stat:"total_sold",     t:1000},
+    {id:"s10k",     name:"💰 Торговец II",     stat:"total_sold",     t:10000},
+    {id:"w10",      name:"⏰ Трудяга I",       stat:"total_worked",   t:10},
+    {id:"w50",      name:"⏰ Трудяга II",      stat:"total_worked",   t:50},
+    {id:"p100",     name:"🌱 Садовник I",      stat:"total_planted",  t:100},
+    {id:"fh20",     name:"🌸 Флорист I",       stat:"flower_harvests",t:20},
+    {id:"fact10",   name:"🏭 Заводчик I",      stat:"factory_made",   t:10},
+  ];
+  ACHS.forEach(a=>{
+    if(S.achievements.includes(a.id))return;
+    if((S.stats[a.stat]||0)>=a.t){ S.achievements.push(a.id); save(); setTimeout(()=>toast("🏅 "+a.name,"info"),200); }
+  });
+}
+
+// ════════════════════════════════════════════
+// UNLOCK CHECKS
+// ════════════════════════════════════════════
+function canOpenCafe(){ return S.points>=CAFE_REQ.pts&&S.coins>=CAFE_REQ.coins; }
+function canOpenFlower(){ return S.cafeOpen&&S.points>=FLOWER_REQ.pts&&S.coins>=FLOWER_REQ.coins; }
+function canOpenFactory(){ return S.flowerOpen&&S.points>=FACTORY_REQ.pts&&S.coins>=FACTORY_REQ.coins; }
+
+function tryOpenCafe(){
+  if(S.cafeOpen){ renderCafe(); return; }
+  if(!canOpenCafe()){ toast("Нужно "+CAFE_REQ.pts+" ⭐ и "+CAFE_REQ.coins+" 🌱","err"); return; }
+  if(!confirm("Открыть кафе за 50 000 🌱 и 30 000 ⭐?"))return;
+  S.coins-=CAFE_REQ.coins; S.points-=CAFE_REQ.pts; S.cafeOpen=true; save();
+  toast("🍽️ Кафе открыто!","ok"); renderCafe(); updateHeader();
+}
+function tryOpenFlower(){
+  if(S.flowerOpen){ renderFlowerFarm(); return; }
+  if(!canOpenFlower()){ toast("Нужно кафе + 70 000 ⭐ + 100 000 🌱","err"); return; }
+  if(!confirm("Открыть цветочный магазин за 100 000 🌱 и 70 000 ⭐?"))return;
+  S.coins-=FLOWER_REQ.coins; S.points-=FLOWER_REQ.pts; S.flowerOpen=true; save();
+  toast("🌸 Цветочный магазин открыт!","ok"); renderFlowerFarm(); updateHeader();
+}
+function tryOpenFactory(){
+  if(S.factoryOpen){ renderFactory(); return; }
+  if(!canOpenFactory()){ toast("Нужно цветочный магазин + 100 000 ⭐ + 200 000 🌱","err"); return; }
+  if(!confirm("Открыть завод за 200 000 🌱 и 100 000 ⭐?"))return;
+  S.coins-=FACTORY_REQ.coins; S.points-=FACTORY_REQ.pts; S.factoryOpen=true; save();
+  toast("🏭 Завод открыт!","ok"); renderFactory(); updateHeader();
+}
+
+// ════════════════════════════════════════════
+// PAGES
+// ════════════════════════════════════════════
+let curPage="farm";
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".main-tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("page-"+id).classList.add("active");
+  event.currentTarget.classList.add("active");
+  curPage=id;
+  if(id==="cafe")   renderCafePage();
+  if(id==="factory")renderFactoryPage();
+  if(id==="flowers")renderFlowerPage();
+  if(id==="pasture")renderPasturePage();
+}
+
+function switchPTab(prefix, tab){
+  document.querySelectorAll(`#${prefix}-ptab-${tab}`).forEach(()=>{});
+  const tabs=document.getElementById("page-"+prefix)||document.getElementById(prefix+"-panel");
+  document.querySelectorAll(".ptab").forEach(t=>{
+    if(t.getAttribute("onclick")?.includes(prefix))t.classList.remove("active");
+  });
+  event.currentTarget.classList.add("active");
+  document.querySelectorAll(`[id^="${prefix}-ptab-"]`).forEach(c=>c.classList.remove("active"));
+  document.getElementById(`${prefix}-ptab-${tab}`).classList.add("active");
+}
+
+// ════════════════════════════════════════════
+// FARM
+// ════════════════════════════════════════════
+let farmPage=0, selPlot=null, selSeed=null;
+
+function renderShop(){
+  const el=document.getElementById("shop-list");
+  el.innerHTML=PLANTS.map(p=>{
+    const qty=S.seeds?.[p.id]||0;
+    const price=Math.ceil(p.buy*farmBuyMult());
+    const sell=Math.ceil(p.sell*farmSellMult());
+    const sel=selSeed===p.id?" sel":"";
+    return `<div class="shop-item${sel}" onclick="selSeedFn('${p.id}')">
+      <div class="si-emoji">${p.emoji}</div>
+      <div class="si-info">
+        <div class="si-name">${p.name}</div>
+        <div class="si-price">🛒 ${price}🌱 · ${fmtTime(p.time)}</div>
+        <div class="si-sell">📦 продажа ${sell}🌱</div>
+      </div>
+      <div class="si-right">
+        <div class="si-qty">${qty?`×${qty}`:""}</div>
+        <button class="btn btn-blue btn-sm" onclick="event.stopPropagation();buySeed('${p.id}')">Купить</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderFarmGrid(){
+  const grid=document.getElementById("farm-grid");
+  const start=farmPage*5; grid.innerHTML="";
+  for(let i=start;i<start+5;i++){
+    const pl=S.plots[i]; const pct=P(pl.plantId)?calcProg(pl,P(pl.plantId),farmEventMult()):0;
+    const ready=pct>=1;
+    let cls="plot";
+    if(i===selPlot)cls+=" sel";
+    if(pl.status==="growing")cls+=ready?" ready":" growing";
+    const em=pl.status==="empty"?"🟫":(P(pl.plantId)?.emoji||"?");
+    const bar=pl.status==="growing"?`<div class="plot-bar"><div class="plot-bar-fill" style="width:${pct*100}%"></div></div>`:"";
+    grid.innerHTML+=`<div class="${cls}" onclick="selPlotFn(${i})"><div class="plot-num">#${i+1}</div>${em}${bar}</div>`;
+  }
+  document.getElementById("farm-page-lbl").textContent=`${farmPage+1}/5`;
+  updatePlotInfo();
+}
+
+function updatePlotInfo(){
+  const el=document.getElementById("farm-plot-info");
+  const bp=document.getElementById("btn-plant"), bh=document.getElementById("btn-harvest");
+  if(selPlot===null){ el.innerHTML=`<div class="pi-name" style="color:var(--muted)">Выберите грядку</div><div class="pi-sub">Нажмите на клетку</div>`; bp&&(bp.disabled=true); bh&&(bh.disabled=true); return; }
+  const pl=S.plots[selPlot]; const plant=P(pl.plantId);
+  if(pl.status==="empty"){
+    el.innerHTML=`<div class="pi-name">🟫 Грядка #${selPlot+1}</div><div class="pi-sub">${selSeed?`Выбрано: ${P(selSeed)?.name} — нажмите Посадить`:"Выберите семя слева"}</div>`;
+    bp&&(bp.disabled=!selSeed); bh&&(bh.disabled=true);
+  } else if(plant){
+    const mult=farmEventMult(); const pct=calcProg(pl,plant,mult);
+    const ready=pct>=1; const remaining=Math.max(0,plant.time/mult-(Date.now()-pl.plantedAt));
+    const stg=["🌱 Семя","🌿 Росток","🌾 Молодой","🌻 Стебель","✅ Зрелый"][Math.min(4,Math.floor(pct*4))];
+    el.innerHTML=`<div class="pi-name">${plant.emoji} ${plant.name} — Грядка #${selPlot+1}</div>
+      <div class="pi-sub">${ready?"✅ Готово к сбору!":`${stg} · осталось ${fmtTime(remaining)}`}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct*100}%"></div></div>
+      <div style="font-size:11px;color:var(--muted)">${Math.floor(pct*100)}% · Продажа: ${Math.ceil(plant.sell*farmSellMult())}🌱</div>`;
+    bp&&(bp.disabled=true); bh&&(bh.disabled=!ready);
+  }
+}
+
+function selPlotFn(i){ selPlot=i; renderFarmGrid(); }
+function selSeedFn(id){ selSeed=selSeed===id?null:id; renderShop(); updatePlotInfo(); }
+function farmChangePage(d){ farmPage=Math.max(0,Math.min(4,farmPage+d)); selPlot=null; renderFarmGrid(); }
+
+function buySeed(id){
+  const p=P(id); const price=Math.ceil(p.buy*farmBuyMult());
+  if(S.coins<price){ toast("Мало фармкоинов!","err"); return; }
+  S.coins-=price; S.seeds=S.seeds||{}; S.seeds[id]=(S.seeds[id]||0)+1; save();
+  toast(`${p.emoji} ${p.name} куплена за ${price}🌱`,"ok");
+  renderShop(); updateHeader();
+}
+
+function doPlant(){
+  if(selPlot===null||!selSeed)return;
+  const pl=S.plots[selPlot];
+  if(pl.status!=="empty"){ toast("Грядка занята","err"); return; }
+  if(!(S.seeds?.[selSeed]>0)){ toast("Нет семян!","err"); return; }
+  S.seeds[selSeed]--; if(!S.seeds[selSeed])delete S.seeds[selSeed];
+  pl.status="growing"; pl.plantId=selSeed; pl.plantedAt=Date.now();
+  S.stats.total_planted=(S.stats.total_planted||0)+1; save(); checkAchs();
+  toast(`${P(selSeed).emoji} ${P(selSeed).name} посажена!`,"ok");
+  renderFarmGrid(); renderShop();
+}
+
+function doHarvest(){
+  if(selPlot===null)return;
+  const pl=S.plots[selPlot]; const plant=P(pl.plantId);
+  if(!plant||calcProg(pl,plant,farmEventMult())<1){ toast("Ещё не выросло!","err"); return; }
+  harvestFarmPlot(selPlot); toast("✅ Собрано!","ok");
+  renderFarmGrid(); renderFarmInv();
+}
+
+function harvestFarmPlot(i){
+  const pl=S.plots[i]; const plant=P(pl.plantId); if(!plant)return;
+  invAdd("h_"+pl.plantId,1);
+  pl.status="empty"; pl.plantId=null; pl.plantedAt=null;
+  S.coins+=plant.pts; S.stats.total_harvests=(S.stats.total_harvests||0)+1; save(); checkAchs(); updateHeader();
+}
+
+function harvestAll(type){
+  let cnt=0;
+  if(type==="farm"){ S.plots.forEach((_,i)=>{ const pl=S.plots[i]; if(pl.status==="growing"&&P(pl.plantId)&&calcProg(pl,P(pl.plantId),farmEventMult())>=1){ harvestFarmPlot(i); cnt++; } }); renderFarmGrid(); renderFarmInv(); }
+  if(type==="flower"){ S.fPlots.forEach((_,i)=>{ const pl=S.fPlots[i]; if(pl.status==="growing"&&F(pl.plantId)&&calcProg(pl,F(pl.plantId),flowerEventMult())>=1){ harvestFlowerPlot(i); cnt++; } }); renderFlowerGrid(); renderFlowerInv(); }
+  toast(cnt?`✅ Собрано ${cnt}!`:"Нет готовых",cnt?"ok":"err");
+}
+
+function renderFarmInv(){
+  const el=document.getElementById("farm-inv");
+  const items=Object.entries(S.inv).filter(([k,v])=>k.startsWith("h_")&&v>0);
+  if(!items.length){ el.innerHTML=`<div style="color:var(--muted);font-size:13px;margin-bottom:8px">Инвентарь пуст</div>`; return; }
+  el.innerHTML=items.map(([id,qty])=>{
+    const p=P(id.slice(2)); if(!p)return"";
+    const price=Math.ceil(p.sell*farmSellMult());
+    return `<div class="inv-item">
+      <div class="ii-left">${p.emoji} ${p.name} <span style="color:var(--muted);font-size:11px">×${qty}</span></div>
+      <div class="ii-right"><span style="font-size:11px;color:var(--green)">${price}🌱</span>
+        <button class="btn btn-green btn-sm" onclick="sellOne('h_${id.slice(2)}')">Продать</button></div>
+    </div>`;
+  }).join("");
+}
+
+function sellOne(id){
+  const p=P(id.slice(2)); if(!p||!invGet(id))return;
+  const price=Math.ceil(p.sell*farmSellMult());
+  invRemove(id,1); S.coins+=price; S.stats.total_sold=(S.stats.total_sold||0)+price; save(); checkAchs();
+  toast(`💰 +${price}🌱`,"ok"); renderFarmInv(); updateHeader();
+}
+
+function sellAll(type){
+  let total=0, cnt=0;
+  const prefix = type==="farm"?"h_": type==="flower"?"f_": type==="pasture"?"p_":"";
+  Object.entries(S.inv).forEach(([id,qty])=>{
+    if(!id.startsWith(prefix)||qty<=0)return;
+    let price=0;
+    if(type==="farm"){ const p=P(id.slice(2)); if(p){ price=Math.ceil(p.sell*farmSellMult())*qty; S.coins+=price; } }
+    if(type==="flower"){ const f=F(id.slice(2)); if(f){ price=Math.ceil(f.sell*flowerSellMult())*qty; S.coins+=price; } }
+    if(type==="pasture"){
+      // find animal product
+      const rid=id.slice(2);
+      const an=ANIMALS.find(a=>a.product===rid||a.bonus===rid);
+      if(an){
+        const sell=an.product===rid?an.pSell:an.bSell;
+        price=sell*qty; S.coins+=price;
+      }
+    }
+    total+=price; cnt+=qty; delete S.inv[id];
+  });
+  S.stats.total_sold=(S.stats.total_sold||0)+total; save(); checkAchs(); updateHeader();
+  toast(cnt?`💰 Продано на ${total}🌱!`:"Нечего продавать",cnt?"ok":"err");
+  if(type==="farm")renderFarmInv();
+  if(type==="flower")renderFlowerInv();
+  if(type==="pasture")renderPastureInv();
+}
+
+function doWork(){
+  const now=Date.now(), cd=3*24*60*60*1000;
+  if(now-(S.lastWork||0)<cd){ toast("Кулдаун!","err"); return; }
+  const amt=Math.floor(Math.random()*51)+50;
+  S.coins+=amt; S.lastWork=now; S.stats.total_worked=(S.stats.total_worked||0)+1; save(); checkAchs(); updateHeader();
+  toast(`💼 +${amt}🌱`,"ok"); updateWorkBtn();
+}
+
+function updateWorkBtn(){
+  const btn=document.getElementById("work-btn"), cd=document.getElementById("work-cd");
+  const left=(S.lastWork||0)+3*24*60*60*1000-Date.now();
+  if(left>0){ btn.disabled=true; cd.textContent=`Через ${fmtTime(left)}`; }
+  else{ btn.disabled=false; cd.textContent=""; }
+}
+
+
+function renderFarmEvents(){
+  renderEventPanel("farm-ev-banner","farm-events-panel",S.farmEvent,FARM_EVENTS);
+}
+
+function renderEventPanel(bannerId, panelId, ev, list){
+  const banner=document.getElementById(bannerId);
+  const panel=document.getElementById(panelId);
+  if(!ev||Date.now()>ev.ends){
+    if(banner)banner.innerHTML="";
+    if(panel)panel.innerHTML=`<div style="color:var(--muted);font-size:13px">Нет активных событий</div>`;
+    return;
+  }
+  const remaining=ev.ends-Date.now();
+  const cls=ev.pos?"ev-pos":"ev-neg";
+  const html=`<div class="ev-banner ${cls}">${ev.name}<span style="font-weight:400;font-size:11px;margin-left:6px">${ev.desc} · ${fmtTime(remaining)}</span></div>`;
+  if(banner)banner.innerHTML=html;
+  if(panel)panel.innerHTML=html;
+}
+
+function renderStats(){
+  const s=S.stats||{};
+  document.getElementById("stats-list").innerHTML=`
+    <div class="stat-row"><span>🌾 Урожаев</span><span class="stat-val">${s.total_harvests||0}</span></div>
+    <div class="stat-row"><span>🌱 Посажено</span><span class="stat-val">${s.total_planted||0}</span></div>
+    <div class="stat-row"><span>💰 Продано (🌱)</span><span class="stat-val">${s.total_sold||0}</span></div>
+    <div class="stat-row"><span>💼 Работ</span><span class="stat-val">${s.total_worked||0}</span></div>
+    <div class="stat-row"><span>🌸 Цветов собрано</span><span class="stat-val">${s.flower_harvests||0}</span></div>
+    <div class="stat-row"><span>🏭 Произведено</span><span class="stat-val">${s.factory_made||0}</span></div>
+    <div class="stat-row"><span>🌱 Фармкоины</span><span class="stat-val">${S.coins}</span></div>
+    <div class="stat-row"><span>⭐ Поинты</span><span class="stat-val">${S.points}</span></div>
+  `;
+  renderAchs();
+}
+
+function renderAchs(){
+  const ACHS=[
+    {id:"first_h",name:"🌾 Первый урожай",desc:"Собери 1 урожай",stat:"total_harvests",t:1},
+    {id:"h50",   name:"🌾 Жнец I",        desc:"50 урожаев",    stat:"total_harvests",t:50},
+    {id:"h500",  name:"🌾 Жнец II",       desc:"500 урожаев",   stat:"total_harvests",t:500},
+    {id:"s1k",   name:"💰 Торговец I",    desc:"Продай 1000🌱", stat:"total_sold",    t:1000},
+    {id:"s10k",  name:"💰 Торговец II",   desc:"Продай 10000🌱",stat:"total_sold",    t:10000},
+    {id:"w10",   name:"⏰ Трудяга I",     desc:"10 подработок", stat:"total_worked",  t:10},
+    {id:"w50",   name:"⏰ Трудяга II",    desc:"50 подработок", stat:"total_worked",  t:50},
+    {id:"p100",  name:"🌱 Садовник I",    desc:"100 посажено",  stat:"total_planted", t:100},
+    {id:"fh20",  name:"🌸 Флорист I",     desc:"20 цветков",    stat:"flower_harvests",t:20},
+    {id:"fact10",name:"🏭 Заводчик I",    desc:"10 на заводе",  stat:"factory_made",  t:10},
+  ];
+  document.getElementById("ach-list").innerHTML=ACHS.map(a=>{
+    const ok=S.achievements.includes(a.id);
+    const cur=(S.stats[a.stat]||0);
+    return `<div class="ach-item ${ok?'ok':'no'}">
+      <span style="font-size:16px">${ok?"🏅":"🔒"}</span>
+      <div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc} ${ok?"✅":`(${Math.min(cur,a.t)}/${a.t})`}</div></div>
+    </div>`;
+  }).join("");
+}
+
+// ════════════════════════════════════════════
+// FLOWERS
+// ════════════════════════════════════════════
+let flowerPage=0, selFPlot=null, selFSeed=null;
+
+function renderFlowerPage(){
+  if(!S.flowerOpen){ showLocked("flower-farm-panel","🌸","Цветочный магазин","Открой кафе, накопи 100 000🌱 и 70 000⭐",`🍽️ Кафе: ${S.cafeOpen?"✅":"❌"}<br>🌱 ${S.coins}/${FLOWER_REQ.coins}<br>⭐ ${S.points}/${FLOWER_REQ.pts}`,"tryOpenFlower()"); }
+  else{ renderFlowerShop(); renderFlowerGrid(); renderFlowerInv(); renderFlowerEvents(); }
+}
+
+function showLocked(panelId, icon, title, desc, progress, action){
+  const el=document.getElementById(panelId);
+  if(!el)return;
+  el.innerHTML=`<div class="locked-overlay">
+    <div class="lock-icon">${icon}</div>
+    <div class="lock-title">${title}</div>
+    <div class="lock-desc">${desc}</div>
+    <div class="lock-progress">${progress}</div>
+    <button class="btn btn-gold" onclick="${action}">🔓 Открыть</button>
+  </div>`;
+}
+
+function renderFlowerShop(){
+  const el=document.getElementById("flower-shop-list");
+  el.innerHTML=FLOWERS.map(f=>{
+    const qty=S.fSeeds?.[f.id]||0;
+    const sel=selFSeed===f.id?" sel":"";
+    return `<div class="shop-item${sel}" onclick="selFSeedFn('${f.id}')">
+      <div class="si-emoji">${f.emoji}</div>
+      <div class="si-info">
+        <div class="si-name">${f.name}</div>
+        <div class="si-price">🛒 ${f.buy}🌱 · ${fmtTime(f.time)}</div>
+        <div class="si-sell">📦 ${f.sell}🌱</div>
+      </div>
+      <div class="si-right">
+        <div class="si-qty">${qty?`×${qty}`:""}</div>
+        <button class="btn btn-pink btn-sm" onclick="event.stopPropagation();buyFlower('${f.id}')">Купить</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function buyFlower(id){
+  const f=F(id);
+  if(S.coins<f.buy){ toast("Мало фармкоинов!","err"); return; }
+  S.coins-=f.buy; S.fSeeds=S.fSeeds||{}; S.fSeeds[id]=(S.fSeeds[id]||0)+1; save();
+  toast(`${f.emoji} ${f.name} куплена`,"ok"); renderFlowerShop(); updateHeader();
+}
+
+function selFSeedFn(id){ selFSeed=selFSeed===id?null:id; renderFlowerShop(); updateFlowerInfo(); }
+function flowerChangePage(d){ flowerPage=Math.max(0,Math.min(1,flowerPage+d)); selFPlot=null; renderFlowerGrid(); }
+
+function renderFlowerGrid(){
+  if(!S.flowerOpen)return;
+  const grid=document.getElementById("flower-grid"); grid.innerHTML="";
+  const start=flowerPage*3;
+  for(let i=start;i<start+3;i++){
+    const pl=S.fPlots[i]; const fl=F(pl.plantId);
+    const mult=flowerEventMult(); const pct=fl?calcProg(pl,fl,mult):0; const ready=pct>=1;
+    let cls="plot";
+    if(i===selFPlot)cls+=" sel";
+    if(pl.status==="growing")cls+=ready?" flower-ready":" flower-growing";
+    const em=pl.status==="empty"?"🟫":(fl?.emoji||"?");
+    const bar=pl.status==="growing"?`<div class="plot-bar"><div class="plot-bar-fill flower" style="width:${pct*100}%"></div></div>`:"";
+    grid.innerHTML+=`<div class="${cls}" onclick="selFPlotFn(${i})" style="font-size:24px"><div class="plot-num">#${i+1}</div>${em}${bar}</div>`;
+  }
+  document.getElementById("flower-page-lbl").textContent=`${flowerPage+1}/2`;
+  updateFlowerInfo();
+}
+
+function selFPlotFn(i){ selFPlot=i; renderFlowerGrid(); }
+
+function updateFlowerInfo(){
+  const el=document.getElementById("flower-plot-info");
+  const bp=document.getElementById("btn-plant-flower"), bh=document.getElementById("btn-harvest-flower");
+  if(selFPlot===null){ el.innerHTML=`<div class="pi-name" style="color:var(--muted)">Выберите грядку</div><div class="pi-sub">Нажмите на клетку</div>`; bp&&(bp.disabled=true); bh&&(bh.disabled=true); return; }
+  const pl=S.fPlots[selFPlot]; const fl=F(pl.plantId);
+  if(pl.status==="empty"){
+    el.innerHTML=`<div class="pi-name">🟫 Грядка #${selFPlot+1}</div><div class="pi-sub">${selFSeed?`Выбрано: ${F(selFSeed)?.name}`:"Выберите цветок слева"}</div>`;
+    bp&&(bp.disabled=!selFSeed); bh&&(bh.disabled=true);
+  } else if(fl){
+    const mult=flowerEventMult(); const pct=calcProg(pl,fl,mult); const ready=pct>=1;
+    const remaining=Math.max(0,fl.time/mult-(Date.now()-pl.plantedAt));
+    el.innerHTML=`<div class="pi-name">${fl.emoji} ${fl.name} — Грядка #${selFPlot+1}</div>
+      <div class="pi-sub">${ready?"✅ Готово!":`Осталось ${fmtTime(remaining)}`}</div>
+      <div class="progress-bar"><div class="progress-fill flower" style="width:${pct*100}%"></div></div>
+      <div style="font-size:11px;color:var(--muted)">${Math.floor(pct*100)}% · ${Math.ceil(fl.sell*flowerSellMult())}🌱</div>`;
+    bp&&(bp.disabled=true); bh&&(bh.disabled=!ready);
+  }
+}
+
+function doPlantFlower(){
+  if(selFPlot===null||!selFSeed)return;
+  const pl=S.fPlots[selFPlot];
+  if(pl.status!=="empty"){ toast("Грядка занята","err"); return; }
+  if(!(S.fSeeds?.[selFSeed]>0)){ toast("Нет семян!","err"); return; }
+  S.fSeeds[selFSeed]--; if(!S.fSeeds[selFSeed])delete S.fSeeds[selFSeed];
+  pl.status="growing"; pl.plantId=selFSeed; pl.plantedAt=Date.now(); save();
+  toast(`${F(selFSeed).emoji} посажена!`,"ok"); renderFlowerGrid(); renderFlowerShop();
+}
+
+function doHarvestFlower(){
+  if(selFPlot===null)return;
+  const pl=S.fPlots[selFPlot]; const fl=F(pl.plantId);
+  if(!fl||calcProg(pl,fl,flowerEventMult())<1){ toast("Ещё не выросло!","err"); return; }
+  harvestFlowerPlot(selFPlot); toast("✅ Собрано!","ok"); renderFlowerGrid(); renderFlowerInv();
+}
+
+function harvestFlowerPlot(i){
+  const pl=S.fPlots[i]; const fl=F(pl.plantId); if(!fl)return;
+  invAdd("f_"+pl.plantId,1);
+  pl.status="empty"; pl.plantId=null; pl.plantedAt=null;
+  S.points+=(fl.pts||0); S.stats.flower_harvests=(S.stats.flower_harvests||0)+1; save(); checkAchs(); updateHeader();
+}
+
+function renderFlowerInv(){
+  const el=document.getElementById("flower-inv");
+  const items=Object.entries(S.inv).filter(([k,v])=>k.startsWith("f_")&&v>0);
+  if(!items.length){ el.innerHTML=`<div style="color:var(--muted);font-size:13px;margin-bottom:8px">Нет цветов</div>`; return; }
+  el.innerHTML=items.map(([id,qty])=>{
+    const f=F(id.slice(2)); if(!f)return"";
+    const price=Math.ceil(f.sell*flowerSellMult());
+    return `<div class="inv-item">
+      <div class="ii-left">${f.emoji} ${f.name} <span style="color:var(--muted);font-size:11px">×${qty}</span></div>
+      <div class="ii-right"><span style="font-size:11px;color:var(--green)">${price}🌱</span>
+        <button class="btn btn-pink btn-sm" onclick="sellOneFlower('${id}')">Продать</button></div>
+    </div>`;
+  }).join("");
+}
+
+function sellOneFlower(id){
+  const f=F(id.slice(2)); if(!f||!invGet(id))return;
+  const price=Math.ceil(f.sell*flowerSellMult());
+  invRemove(id,1); S.coins+=price; S.stats.total_sold=(S.stats.total_sold||0)+price; save(); checkAchs();
+  toast(`💰 +${price}🌱`,"ok"); renderFlowerInv(); updateHeader();
+}
+
+function renderFlowerEvents(){
+  renderEventPanel("flower-ev-banner","flower-events-panel",S.flowerEvent,FLOWER_EVENTS);
+}
+
+// ════════════════════════════════════════════
+// PASTURE
+// ════════════════════════════════════════════
+let pasturePage=0, selAnimal=null;
+
+function renderPasturePage(){
+  if(!S.factoryOpen){ showLocked("pasture-panel","🐾","Пастбище","Откройте завод чтобы разблокировать пастбище",`🌸 Цвет. магазин: ${S.flowerOpen?"✅":"❌"}<br>🌱 ${S.coins}/${FACTORY_REQ.coins}<br>⭐ ${S.points}/${FACTORY_REQ.pts}`,"tryOpenFactory()"); return; }
+  renderAnimalShop(); renderPastureGrid(); renderPastureInv(); renderPastureEvents();
+}
+
+function renderAnimalShop(){
+  const el=document.getElementById("animal-shop-list");
+  el.innerHTML=ANIMALS.map(a=>{
+    const qty=S.animals?.[a.id]||0;
+    const sel=selAnimal===a.id?" sel":"";
+    return `<div class="shop-item${sel}" onclick="selAnimalFn('${a.id}')">
+      <div class="si-emoji">${a.emoji}</div>
+      <div class="si-info">
+        <div class="si-name">${a.name}</div>
+        <div class="si-price">🛒 ${a.buy}🌱 · ${a.pEmoji} каждые ${fmtTime(a.cd*1000)}</div>
+        <div class="si-sell">${a.pEmoji} ${a.pSell}🌱 · бонус ×3: ${a.bEmoji} ${a.bSell}🌱</div>
+      </div>
+      <div class="si-right">
+        <div class="si-qty">${qty?`×${qty}`:""}</div>
+        <button class="btn btn-green btn-sm" onclick="event.stopPropagation();buyAnimal('${a.id}')">Купить</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function selAnimalFn(id){ selAnimal=selAnimal===id?null:id; renderAnimalShop(); }
+function pastureChangePage(d){ pasturePage=Math.max(0,Math.min(1,pasturePage+d)); renderPastureGrid(); }
+
+function buyAnimal(id){
+  const a=A(id); if(!a)return;
+  if(S.coins<a.buy){ toast("Мало фармкоинов!","err"); return; }
+  // Find a pasture slot
+  const avail=S.pastures.find(p=>(!p.animalId||p.animalId===id)&&p.count<3);
+  if(!avail){ toast("Нет свободных пастбищ для этого животного!","err"); return; }
+  S.coins-=a.buy; avail.animalId=id; avail.count++; S.animals=S.animals||{}; S.animals[id]=(S.animals[id]||0)+1; save(); updateHeader();
+  toast(`${a.emoji} ${a.name} добавлена на пастбище #${avail.slot+1}`,"ok"); renderPastureGrid(); renderAnimalShop();
+}
+
+function renderPastureGrid(){
+  const el=document.getElementById("pasture-grid"); el.innerHTML="";
+  const start=pasturePage*2;
+  for(let i=start;i<start+2;i++){
+    const p=S.pastures[i]; const a=A(p.animalId);
+    const cdMs=a?pastureCD(a)*1000:0;
+    const elapsed=Date.now()-p.lastCollect;
+    const canCollect=a&&elapsed>=cdMs&&(!S.pastureEvent?.noProduct);
+    const remaining=a?Math.max(0,cdMs-elapsed):0;
+    const slots=Array.from({length:3},(_,j)=>`<div class="animal-slot ${j<p.count?"filled":""}${p.count>=3?" bonus":""}">${j<p.count?(a?.emoji||""):"+"}</div>`).join("");
+    el.innerHTML+=`<div class="pasture-card">
+      <div class="pc-header">
+        <div class="pc-name">Пастбище #${i+1} ${a?`— ${a.name}`:"(пусто)"}</div>
+        ${canCollect?`<button class="btn btn-green btn-sm" onclick="collectPasture(${i})">Собрать</button>`:""}
+      </div>
+      <div class="pc-animals">${slots}</div>
+      ${a?`<div class="pc-product">${a.pEmoji} ${a.pName} × ${p.count} · Продажа: ${a.pSell*p.count}🌱</div>
+        <div class="pc-cd">${canCollect?"✅ Готово к сбору!":"⏳ "+fmtTime(remaining)}${p.count>=3?`<br>🎁 ${a.bEmoji} ${a.bName} доступен!`:""}</div>`:"<div style='color:var(--muted);font-size:12px'>Купите животное в магазине слева</div>"}
+    </div>`;
+  }
+  document.getElementById("pasture-page-lbl").textContent=`${pasturePage+1}/2`;
+}
+
+function collectPasture(i){
+  const p=S.pastures[i]; const a=A(p.animalId); if(!a)return;
+  if(S.pastureEvent?.noProduct){ toast("Эпидемия! Животные не работают","err"); return; }
+  const cdMs=pastureCD(a)*1000;
+  if(Date.now()-p.lastCollect<cdMs){ toast("Ещё не готово!","err"); return; }
+  for(let j=0;j<p.count;j++) invAdd("p_"+a.product,1);
+  if(p.count>=3) invAdd("p_"+a.bonus,1);
+  p.lastCollect=Date.now(); save();
+  toast(`${a.pEmoji} ×${p.count} собрано!`+(p.count>=3?` + ${a.bEmoji}`:""),"ok");
+  renderPastureGrid(); renderPastureInv();
+}
+
+function renderPastureInv(){
+  const el=document.getElementById("pasture-inv");
+  const items=Object.entries(S.inv).filter(([k,v])=>k.startsWith("p_")&&v>0);
+  if(!items.length){ el.innerHTML=`<div style="color:var(--muted);font-size:13px;margin-bottom:8px">Нет продуктов</div>`; return; }
+  el.innerHTML=items.map(([id,qty])=>{
+    const rid=id.slice(2);
+    const an=ANIMALS.find(a=>a.product===rid||a.bonus===rid); if(!an)return"";
+    const isBonus=an.bonus===rid;
+    const sell=isBonus?an.bSell:an.pSell; const em=isBonus?an.bEmoji:an.pEmoji; const nm=isBonus?an.bName:an.pName;
+    return `<div class="inv-item">
+      <div class="ii-left">${em} ${nm} <span style="color:var(--muted);font-size:11px">×${qty}</span></div>
+      <div class="ii-right"><span style="font-size:11px;color:var(--green)">${sell}🌱</span>
+        <button class="btn btn-green btn-sm" onclick="sellOnePasture('${id}')">Продать</button></div>
+    </div>`;
+  }).join("");
+}
+
+function sellOnePasture(id){
+  const rid=id.slice(2); const an=ANIMALS.find(a=>a.product===rid||a.bonus===rid); if(!an||!invGet(id))return;
+  const isBonus=an.bonus===rid; const sell=isBonus?an.bSell:an.pSell;
+  invRemove(id,1); S.coins+=sell; S.stats.total_sold=(S.stats.total_sold||0)+sell; save(); checkAchs();
+  toast(`💰 +${sell}🌱`,"ok"); renderPastureInv(); updateHeader();
+}
+
+function renderPastureEvents(){
+  renderEventPanel("pasture-ev-banner","pasture-events-panel",S.pastureEvent,PASTURE_EVENTS);
+}
+
+// ════════════════════════════════════════════
+// CAFE
+// ════════════════════════════════════════════
+function renderCafePage(){
+  if(!S.cafeOpen){ showLocked("cafe-panel","🍽️","Кафе","Накопи 30 000⭐ и 50 000🌱 чтобы открыть кафе",`⭐ ${S.points}/${CAFE_REQ.pts}<br>🌱 ${S.coins}/${CAFE_REQ.coins}`,"tryOpenCafe()"); }
+  else renderCafe();
+}
+
+function renderCafe(){
+  const el=document.getElementById("cafe-recipes");
+  const all=CAFE_RECIPES;
+  el.innerHTML=all.map(r=>{
+    const owned=S.cafeRecipes.includes(r.id);
+    // check if flower recipe and flowers not unlocked
+    const locked=r.flower&&!S.flowerOpen;
+    const ingrHtml=Object.entries(r.ingr).map(([id,qty])=>{
+      const p=P(id)||F(id); return p?`${p.emoji}${p.name}×${qty}`:`${id}×${qty}`;
+    }).join(", ");
+    return `<div class="recipe-card ${owned?"owned":""}">
+      <div class="rc-header">
+        <div class="rc-emoji">${r.emoji}</div>
+        <div class="rc-name">${r.name}</div>
+        <div class="rc-price">${owned?"✅ Куплен":`${r.price}🌱`}</div>
+      </div>
+      <div class="rc-ingr">${ingrHtml}</div>
+      <div class="rc-footer">
+        <span class="rc-sell">📦 ${r.sell}🌱</span>
+        <span class="rc-time">⏳ ${fmtTime(r.time)}</span>
+        ${owned?`<button class="btn btn-green btn-sm" onclick="startCooking('${r.id}')">Готовить</button>`:
+          locked?`<span style="color:var(--muted);font-size:11px">🔒 Нужны цветы</span>`:
+          `<button class="btn btn-blue btn-sm" onclick="buyRecipe('${r.id}')">Купить</button>`}
+      </div>
+    </div>`;
+  }).join("");
+  renderCafeQueue();
+}
+
+function buyRecipe(id){
+  const r=CR(id); if(!r)return;
+  if(S.coins<r.price){ toast("Мало фармкоинов!","err"); return; }
+  S.coins-=r.price; S.cafeRecipes.push(id); save(); updateHeader();
+  toast(`${r.emoji} Рецепт "${r.name}" куплен!`,"ok"); renderCafe();
+}
+
+function startCooking(id){
+  const r=CR(id); if(!r)return;
+  // Check ingredients
+  for(const [iid,qty] of Object.entries(r.ingr)){
+    const key=r.flower?`f_${iid}`:`h_${iid}`;
+    if(invGet(key)<qty){ const p=P(iid)||F(iid); toast(`Не хватает ${p?.emoji||""} ${p?.name||iid}!`,"err"); return; }
+  }
+  for(const [iid,qty] of Object.entries(r.ingr)){
+    const key=r.flower?`f_${iid}`:`h_${iid}`;
+    invRemove(key,qty);
+  }
+  S.cafeQueue.push({id,started:Date.now(),done:Date.now()+r.time*1000,collected:false}); save();
+  toast(`${r.emoji} Готовка начата! ${fmtTime(r.time*1000)}`,"ok"); renderCafeQueue();
+}
+
+function renderCafeQueue(){
+  const el=document.getElementById("cafe-queue");
+  const now=Date.now();
+  const active=S.cafeQueue.filter(c=>!c.collected);
+  if(!active.length){ el.innerHTML=`<div style="color:var(--muted);font-size:13px">Ничего не готовится</div>`; return; }
+  el.innerHTML=active.map((c,idx)=>{
+    const r=CR(c.id); if(!r)return"";
+    const ready=now>=c.done;
+    return `<div class="cook-item">
+      <div class="cook-emoji">${r.emoji}</div>
+      <div class="cook-info">
+        <div class="cook-name">${r.name}</div>
+        ${ready?`<div class="cook-ready">✅ Готово! +${r.sell}🌱</div>`:`<div class="cook-time">⏳ ${fmtTime(c.done-now)}</div>`}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function collectCafe(){
+  const now=Date.now(); let cnt=0, total=0;
+  S.cafeQueue.forEach(c=>{ if(!c.collected&&now>=c.done){ const r=CR(c.id); if(r){ S.coins+=r.sell; total+=r.sell; } c.collected=true; cnt++; } });
+  if(!cnt){ toast("Ничего не готово","err"); return; }
+  save(); updateHeader(); renderCafeQueue();
+  toast(`📦 Собрано ${cnt} блюд на ${total}🌱!`,"ok");
+}
+
+// ════════════════════════════════════════════
+// FACTORY
+// ════════════════════════════════════════════
+function renderFactoryPage(){
+  if(!S.factoryOpen){ showLocked("factory-panel","🏭","Завод","Откройте цветочный магазин, накопи 200 000🌱 и 100 000⭐",`🌸 Цвет. магазин: ${S.flowerOpen?"✅":"❌"}<br>🌱 ${S.coins}/${FACTORY_REQ.coins}<br>⭐ ${S.points}/${FACTORY_REQ.pts}`,"tryOpenFactory()"); renderFactoryQueue(); renderFactoryEvents(); return; }
+  renderFactory(); renderFactoryQueue(); renderFactoryEvents();
+}
+
+function renderFactory(){
+  const half=Math.ceil(FACTORY_RECIPES.length/2);
+  ["1","2"].forEach((p,pi)=>{
+    const recipes=FACTORY_RECIPES.slice(pi*half,(pi+1)*half);
+    document.getElementById(`factory-recipes-${p}`).innerHTML=recipes.map(r=>{
+      const sellMult=factorySellMult(); const sell=Math.floor(r.sell*sellMult);
+      const ingrHtml=Object.entries(r.ingr).map(([id,qty])=>{
+        const an=ANIMALS.find(a=>a.product===id||a.bonus===id);
+        const p=P(id)||F(id); const em=an?(an.product===id?an.pEmoji:an.bEmoji):(p?.emoji||"");
+        const nm=an?(an.product===id?an.pName:an.bName):(p?.name||id);
+        return `${em}${nm}×${qty}`;
+      }).join(", ");
+      return `<div class="recipe-card">
+        <div class="rc-header"><div class="rc-emoji">${r.emoji}</div><div class="rc-name">${r.name}</div></div>
+        <div class="rc-ingr">${ingrHtml}</div>
+        <div class="rc-footer">
+          <span class="rc-sell">📦 ${sell}🌱</span>
+          <span class="rc-time">⏳ ${fmtTime(r.time/factoryMult()*1000)}</span>
+          <button class="btn btn-blue btn-sm" onclick="startFactory('${r.id}')">Произвести</button>
+        </div>
+      </div>`;
+    }).join("");
+  });
+}
+
+function startFactory(id){
+  if(!S.factoryOpen){ toast("Завод не открыт","err"); return; }
+  const r=FR(id); if(!r)return;
+  for(const [iid,qty] of Object.entries(r.ingr)){
+    // Find in pasture inventory
+    const key="p_"+iid;
+    // Also check regular inventory for plants
+    const hkey="h_"+iid; const fkey="f_"+iid;
+    const have=invGet(key)||invGet(hkey)||invGet(fkey);
+    if(have<qty){
+      const an=ANIMALS.find(a=>a.product===iid||a.bonus===iid);
+      const p=P(iid)||F(iid); const nm=an?(an.product===iid?an.pName:an.bName):(p?.name||iid);
+      toast(`Не хватает ${nm}!`,"err"); return;
+    }
+  }
+  // Remove ingredients
+  for(const [iid,qty] of Object.entries(r.ingr)){
+    const key="p_"+iid; const hkey="h_"+iid; const fkey="f_"+iid;
+    if(invGet(key)>=qty) invRemove(key,qty);
+    else if(invGet(hkey)>=qty) invRemove(hkey,qty);
+    else if(invGet(fkey)>=qty) invRemove(fkey,qty);
+  }
+  const time=Math.floor(r.time/factoryMult());
+  S.factoryQueue.push({id,started:Date.now(),done:Date.now()+time*1000,collected:false}); save();
+  toast(`${r.emoji} Производство началось! ${fmtTime(time*1000)}`,"ok"); renderFactoryQueue();
+}
+
+function renderFactoryQueue(){
+  const el=document.getElementById("factory-queue");
+  const now=Date.now();
+  const active=S.factoryQueue.filter(c=>!c.collected);
+  if(!active.length){ el.innerHTML=`<div style="color:var(--muted);font-size:13px">Очередь пуста</div>`; return; }
+  el.innerHTML=active.map(c=>{
+    const r=FR(c.id); if(!r)return"";
+    const ready=now>=c.done; const sell=Math.floor(r.sell*factorySellMult());
+    return `<div class="cook-item">
+      <div class="cook-emoji">${r.emoji}</div>
+      <div class="cook-info">
+        <div class="cook-name">${r.name}</div>
+        ${ready?`<div class="cook-ready">✅ Готово! +${sell}🌱</div>`:`<div class="cook-time">⏳ ${fmtTime(c.done-now)}</div>`}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function collectFactory(){
+  const now=Date.now(); let cnt=0,total=0;
+  S.factoryQueue.forEach(c=>{
+    if(!c.collected&&now>=c.done){
+      const r=FR(c.id); if(r){ const sell=Math.floor(r.sell*factorySellMult()); S.coins+=sell; total+=sell; }
+      c.collected=true; cnt++;
+      S.stats.factory_made=(S.stats.factory_made||0)+1;
+    }
+  });
+  if(!cnt){ toast("Ничего не готово","err"); return; }
+  save(); checkAchs(); updateHeader(); renderFactoryQueue();
+  toast(`📦 Собрано ${cnt} позиций на ${total}🌱!`,"ok");
+}
+
+function renderFactoryEvents(){
+  renderEventPanel(null,"factory-events-panel",S.pastureEvent,PASTURE_EVENTS);
+}
+
+// ════════════════════════════════════════════
+// RANDOM EVENTS
+// ════════════════════════════════════════════
+function rollEvents(){
+  const now=Date.now();
+  // Farm event
+  if(!S.farmEvent||now>S.farmEvent.ends){
+    if(Math.random()<0.25){ const ev=FARM_EVENTS[Math.floor(Math.random()*FARM_EVENTS.length)]; S.farmEvent={...ev,ends:now+ev.dur}; save(); toast(`⚡ ${ev.name}!`,ev.pos?"ok":"err"); }
+    else S.farmEvent=null;
+  }
+  // Flower event
+  if(S.flowerOpen&&(!S.flowerEvent||now>S.flowerEvent.ends)){
+    if(Math.random()<0.2){ const ev=FLOWER_EVENTS[Math.floor(Math.random()*FLOWER_EVENTS.length)]; S.flowerEvent={...ev,ends:now+ev.dur}; save(); toast(`🌸 ${ev.name}!`,ev.pos?"ok":"err"); }
+    else S.flowerEvent=null;
+  }
+  // Pasture event
+  if(S.factoryOpen&&(!S.pastureEvent||now>S.pastureEvent.ends)){
+    if(Math.random()<0.2){ const ev=PASTURE_EVENTS[Math.floor(Math.random()*PASTURE_EVENTS.length)]; S.pastureEvent={...ev,ends:now+ev.dur}; save(); toast(`🐾 ${ev.name}!`,ev.pos?"ok":"err"); }
+    else S.pastureEvent=null;
+  }
+}
+
+function checkEventExpiry(){
+  const now=Date.now();
+  if(S.farmEvent&&now>S.farmEvent.ends){ S.farmEvent=null; save(); }
+  if(S.flowerEvent&&now>S.flowerEvent.ends){ S.flowerEvent=null; save(); }
+  if(S.pastureEvent&&now>S.pastureEvent.ends){ S.pastureEvent=null; save(); }
+}
+
+// ════════════════════════════════════════════
+// RENDER ALL & LOOP
+// ════════════════════════════════════════════
+function renderAll(){
+  updateHeader(); renderShop(); renderFarmGrid(); renderFarmInv(); renderFarmEvents(); updateWorkBtn();
+  if(curPage==="flowers")renderFlowerPage();
+  if(curPage==="pasture")renderPasturePage();
+  if(curPage==="cafe")renderCafePage();
+  if(curPage==="factory")renderFactoryPage();
+}
+
+setInterval(()=>{ checkEventExpiry(); renderFarmGrid(); if(curPage==="flowers")renderFlowerGrid(); if(curPage==="pasture")renderPastureGrid(); updateWorkBtn(); renderFarmEvents(); if(curPage==="cafe")renderCafeQueue(); if(curPage==="factory"){renderFactoryQueue();renderFactoryEvents();} }, 1000);
+
+setInterval(()=>{ rollEvents(); }, 45000);
+
+// Init
+renderAll();
+</script>
+</body>
+</html>
